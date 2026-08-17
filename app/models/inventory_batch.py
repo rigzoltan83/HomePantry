@@ -140,3 +140,10 @@ class InventoryBatch(db.Model):
     unit = db.relationship(
         "Unit",
     )
+
+    movements = db.relationship(
+        "InventoryMovement",
+        back_populates="inventory_batch",
+        cascade="all, delete-orphan",
+        order_by="InventoryMovement.created_at",
+    )

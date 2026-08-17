@@ -11,6 +11,9 @@ from .ingredient_substitution import (
 from .inventory_batch import (
     InventoryBatch,
 )
+from .inventory_movement import (
+    InventoryMovement,
+)
 from .product import (
     Product,
     ProductBarcode,
@@ -42,6 +45,7 @@ __all__ = [
     "IngredientTranslation",
     "IngredientSubstitution",
     "InventoryBatch",
+    "InventoryMovement",
     "Product",
     "ProductBarcode",
     "StorageLocation",
