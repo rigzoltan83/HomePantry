@@ -50,6 +50,7 @@ def create_app():
     from . import models  # noqa: F401
 
     from .auth import bp as auth_bp
+    from .inventory import bp as inventory_bp
     from .main import bp as main_bp
 
     app.register_blueprint(
@@ -59,6 +60,11 @@ def create_app():
 
     app.register_blueprint(
         main_bp,
+    )
+
+    app.register_blueprint(
+        inventory_bp,
+        url_prefix="/inventory",
     )
 
     @login_manager.user_loader

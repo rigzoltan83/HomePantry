@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}
+Storage locations · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>Storage locations</h1>
+
+        <p class="muted">
+            Manage rooms, fridges, freezers,
+            shelves and other storage locations.
+        </p>
+    </div>
+
+    <a
+        class="primary-link"
+        href="{{ url_for('inventory.location_new') }}"
+    >
+        Add location
+    </a>
+</div>
+
+<section class="panel">
+    <h2>Active locations</h2>
+
+    {% if active_locations %}
+        <div class="location-list">
+            {% for location in active_locations %}
+                <article class="location-row">
+                    <div class="location-main">
+                        <strong>
+                            {{ build_location_path(location) }}
+                        </strong>
+
+                        <span class="muted">
+                            {{
+                                location_type_labels.get(
+                                    location.location_type,
+                                    location.location_type
+                                )
+                            }}
+                        </span>
+                    </div>
+
+                    <div class="row-actions">
+                        <a
+                            href="{{
+                                url_for(
+                                    'inventory.location_edit',
+                                    public_id=location.public_id
+                                )
+                            }}"
+                        >
+                            Edit
+                        </a>
+
+                        <form
+                            method="post"
+                            action="{{
+                                url_for(
+                                    'inventory.location_toggle',
+                                    public_id=location.public_id
+                                )
+                            }}"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button
+                                type="submit"
+                                class="link-button danger-link"
+                            >
+                                Deactivate
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>
+            No storage locations yet.
+        </p>
+    {% endif %}
+</section>
+
+{% if inactive_locations %}
+<section class="panel">
+    <h2>Inactive locations</h2>
+
+    <div class="location-list">
+        {% for location in inactive_locations %}
+            <article class="location-row inactive-row">
+                <div class="location-main">
+                    <strong>
+                        {{ build_location_path(location) }}
+                    </strong>
+
+                    <span class="muted">
+                        Inactive
+                    </span>
+                </div>
+
+                <div class="row-actions">
+                    <form
+                        method="post"
+                        action="{{
+                            url_for(
+                                'inventory.location_toggle',
+                                public_id=location.public_id
+                            )
+                        }}"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="link-button"
+                        >
+                            Reactivate
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

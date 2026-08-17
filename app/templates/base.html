@@ -36,6 +36,13 @@
 
             {% if current_user.is_authenticated %}
                 <div class="header-user">
+
+                    <a
+                        href="{{ url_for('inventory.locations') }}"
+                    >
+                        Storage
+                    </a>
+
                     <span>
                         {{ current_user.display_name }}
                     </span>
