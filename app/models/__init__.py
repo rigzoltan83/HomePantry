@@ -5,6 +5,9 @@ from .ingredient import (
     IngredientAlias,
     IngredientTranslation,
 )
+from .ingredient_substitution import (
+    IngredientSubstitution,
+)
 from .ingredient_category import (
     IngredientCategory,
     IngredientCategoryTranslation,
@@ -24,6 +27,7 @@ __all__ = [
     "IngredientCategory",
     "IngredientCategoryTranslation",
     "IngredientTranslation",
+    "IngredientSubstitution",
     "Unit",
     "UnitTranslation",
     "User",

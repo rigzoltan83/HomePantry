@@ -88,6 +88,26 @@ class Ingredient(db.Model):
         cascade="all, delete-orphan",
     )
 
+    substitutions_from = db.relationship(
+        "IngredientSubstitution",
+        foreign_keys=(
+            "IngredientSubstitution."
+            "source_ingredient_id"
+        ),
+        back_populates="source_ingredient",
+        cascade="all, delete-orphan",
+    )
+
+    substitutions_to = db.relationship(
+        "IngredientSubstitution",
+        foreign_keys=(
+            "IngredientSubstitution."
+            "target_ingredient_id"
+        ),
+        back_populates="target_ingredient",
+        cascade="all, delete-orphan",
+    )
+
 
 class IngredientTranslation(db.Model):
     __tablename__ = "ingredient_translations"
