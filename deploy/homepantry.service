@@ -1,0 +1,27 @@
+[Unit]
+Description=HomePantry Gunicorn service
+After=network.target docker.service
+Wants=network.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=homepantry
+Group=homepantry
+
+WorkingDirectory=/opt/homepantry
+
+Environment=HOME=/opt/homepantry
+
+ExecStart=/opt/homepantry/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 0.0.0.0:8084 \
+    --access-logfile - \
+    --error-logfile - \
+    wsgi:app
+
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

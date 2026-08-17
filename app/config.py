@@ -19,3 +19,7 @@ class Config:
         .rstrip("/")
     )
 
+    DEFAULT_TIMEZONE = os.getenv(
+        "DEFAULT_TIMEZONE",
+        "Europe/Budapest",
+    )
