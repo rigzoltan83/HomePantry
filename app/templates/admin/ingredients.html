@@ -31,26 +31,49 @@
 
 <section class="panel">
 
-    <div class="list-search">
+<div class="list-search">
+
+    <form
+        method="get"
+        action="{{
+            url_for(
+                'admin.ingredients'
+            )
+        }}"
+        class="ingredient-search-form"
+    >
         <input
             type="search"
-            id="ingredient-admin-search"
+            name="q"
             class="list-search-input"
+            value="{{ search_text }}"
             placeholder="{{ t('ingredient_admin_title') }}..."
             autocomplete="off"
-            oninput="
-                const q=this.value.toLowerCase();
-                document
-                    .querySelectorAll('.js-ingredient-admin-row')
-                    .forEach(row => {
-                        row.hidden =
-                            !row.dataset.search
-                                .toLowerCase()
-                                .includes(q);
-                    });
-            "
         >
-    </div>
+
+        <button
+            type="submit"
+            class="secondary-button"
+        >
+            {{ t("search") }}
+        </button>
+
+        {% if search_text %}
+            <a
+                class="secondary-button"
+                href="{{
+                    url_for(
+                        'admin.ingredients'
+                    )
+                }}"
+            >
+                {{ t("clear") }}
+            </a>
+        {% endif %}
+
+    </form>
+
+</div>
 
     <div class="inventory-table-wrap">
 
@@ -197,6 +220,61 @@
         </table>
 
     </div>
+
+    {% if total_pages > 1 %}
+
+        <div class="pagination">
+
+            {% if page > 1 %}
+                <a
+                    class="secondary-button"
+href="{{
+    url_for(
+        'admin.ingredients',
+        page=page - 1,
+        q=search_text
+    )
+}}"
+                >
+                    ← {{ t("pagination_previous") }}
+                </a>
+            {% else %}
+                <span></span>
+            {% endif %}
+
+
+            <span class="pagination-status">
+                {{ page }}
+                /
+                {{ total_pages }}
+
+                ·
+
+                {{ total_ingredients }}
+                {{ t("ingredient_admin_title") }}
+            </span>
+
+
+            {% if page < total_pages %}
+                <a
+                    class="secondary-button"
+href="{{
+    url_for(
+        'admin.ingredients',
+        page=page + 1,
+        q=search_text
+    )
+}}"
+                >
+                    {{ t("pagination_next") }} →
+                </a>
+            {% else %}
+                <span></span>
+            {% endif %}
+
+        </div>
+
+    {% endif %}
 
 </section>
 

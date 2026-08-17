@@ -38,44 +38,6 @@
                 <div class="header-user">
 
                     <a
-                        href="{{ url_for('inventory.inventory_list') }}"
-                    >
-                        {{ t("nav_inventory") }}
-                    </a>
-
-                    <a
-                        href="{{ url_for('inventory.products') }}"
-                    >
-                        {{ t("nav_products") }}
-                    </a>
-
-                    <a
-                        href="{{
-                            url_for(
-                                'inventory.stock_rules'
-                            )
-                        }}"
-                    >
-                        {{ t("nav_stock_rules") }}
-                    </a>
-
-                    <a
-                        href="{{
-                            url_for(
-                                'inventory.movements'
-                            )
-                        }}"
-                    >
-                        {{ t("nav_movements") }}
-                    </a>
-
-                    <a
-                        href="{{ url_for('inventory.locations') }}"
-                    >
-                        {{ t("nav_storage") }}
-                    </a>
-
-                    <a
                         href="{{ url_for('admin.profile') }}"
                     >
                         {{ t("nav_profile") }}
@@ -93,25 +55,16 @@
                             {% endif %}
                         {% endfor %}
 
-                        {% if ns.can_admin %}
-                            <a
-                                href="{{ url_for('admin.users') }}"
-                            >
-                                {{ t("nav_admin") }}
-                            </a>
-<a
-    href="{{
-        url_for(
-            'admin.ingredients'
-        )
-    }}"
->
-    {{ t("nav_ingredients_admin") }}
-</a>
-                        {% endif %}
+{% if ns.can_admin %}
+    <a
+        href="{{ url_for('admin.index') }}"
+    >
+        {{ t("nav_admin") }}
+    </a>
+{% endif %}
                     {% endif %}
 
-                    <span>
+                    <span class="header-user-name">
                         {{ current_user.display_name }}
                     </span>
 
@@ -132,8 +85,10 @@
                             {{ t("nav_logout") }}
                         </button>
                     </form>
+
                 </div>
             {% endif %}
+
         </div>
     </header>
 

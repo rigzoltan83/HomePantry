@@ -13,6 +13,7 @@ from flask_login import (
     login_required,
 )
 from sqlalchemy import (
+    func,
     or_,
     select,
 )
@@ -609,6 +610,65 @@ def profile():
     )
 
 
+@bp.get("/")
+@login_required
+def index():
+    membership = (
+        get_admin_membership()
+    )
+
+    members = db.session.scalars(
+        select(HouseholdMember)
+        .where(
+            HouseholdMember.household_id
+            == membership.household_id
+        )
+    ).all()
+
+    total_users = len(
+        members
+    )
+
+    active_users = sum(
+        1
+        for member in members
+        if member.is_active
+    )
+
+    total_ingredients = db.session.scalar(
+        select(
+            func.count(
+                Ingredient.id
+            )
+        )
+    ) or 0
+
+    active_ingredients = db.session.scalar(
+        select(
+            func.count(
+                Ingredient.id
+            )
+        )
+        .where(
+            Ingredient.is_active.is_(
+                True
+            )
+        )
+    ) or 0
+
+    return render_template(
+        "admin/index.html",
+        total_users=total_users,
+        active_users=active_users,
+        total_ingredients=(
+            total_ingredients
+        ),
+        active_ingredients=(
+            active_ingredients
+        ),
+    )
+
+
 @bp.get("/users")
 @login_required
 def users():
@@ -955,23 +1015,127 @@ def user_edit(
 def ingredients():
     get_admin_membership()
 
-    ingredients = db.session.scalars(
+    page = request.args.get(
+        "page",
+        1,
+        type=int,
+    )
+
+    if page < 1:
+        page = 1
+
+    search_text = (
+        request.args.get(
+            "q",
+            "",
+        )
+        .strip()
+    )
+
+    per_page = 50
+
+    filters = []
+
+    if search_text:
+        pattern = (
+            f"%{search_text}%"
+        )
+
+        filters.append(
+            or_(
+                Ingredient.canonical_key
+                .ilike(pattern),
+
+                Ingredient.translations.any(
+                    IngredientTranslation.name
+                    .ilike(pattern)
+                ),
+
+                Ingredient.aliases.any(
+                    IngredientAlias.alias
+                    .ilike(pattern)
+                ),
+            )
+        )
+
+    count_query = select(
+        func.count(
+            Ingredient.id
+        )
+    )
+
+    if filters:
+        count_query = (
+            count_query.where(
+                *filters
+            )
+        )
+
+    total_ingredients = (
+        db.session.scalar(
+            count_query
+        )
+        or 0
+    )
+
+    total_pages = max(
+        1,
+        (
+            total_ingredients
+            + per_page
+            - 1
+        )
+        // per_page,
+    )
+
+    if page > total_pages:
+        page = total_pages
+
+    ingredient_query = (
         select(Ingredient)
         .order_by(
             Ingredient.is_active.desc(),
             Ingredient.canonical_key,
         )
+    )
+
+    if filters:
+        ingredient_query = (
+            ingredient_query.where(
+                *filters
+            )
+        )
+
+    ingredient_rows = db.session.scalars(
+        ingredient_query
+        .offset(
+            (
+                page - 1
+            )
+            * per_page
+        )
+        .limit(
+            per_page
+        )
     ).all()
 
     return render_template(
         "admin/ingredients.html",
-        ingredients=ingredients,
+        ingredients=(
+            ingredient_rows
+        ),
         get_ingredient_name=(
             get_ingredient_name
         ),
         get_category_name=(
             get_category_name
         ),
+        page=page,
+        total_pages=total_pages,
+        total_ingredients=(
+            total_ingredients
+        ),
+        search_text=search_text,
     )
 
 

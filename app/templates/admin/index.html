@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("admin_dashboard_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>
+            {{ t("admin_dashboard_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("admin_dashboard_description") }}
+        </p>
+    </div>
+</div>
+
+<section class="admin-dashboard-grid">
+
+    <a
+        class="admin-dashboard-card"
+        href="{{
+            url_for(
+                'admin.users'
+            )
+        }}"
+    >
+        <div>
+            <h2>
+                {{ t("admin_users_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("admin_users_description") }}
+            </p>
+        </div>
+
+        <div class="admin-dashboard-stats">
+            <strong>
+                {{ active_users }}
+            </strong>
+
+            <span>
+                {{ t("admin_active") }}
+            </span>
+
+            <small>
+                {{ total_users }}
+                {{ t("admin_total") }}
+            </small>
+        </div>
+    </a>
+
+
+    <a
+        class="admin-dashboard-card"
+        href="{{
+            url_for(
+                'admin.ingredients'
+            )
+        }}"
+    >
+        <div>
+            <h2>
+                {{ t("ingredient_admin_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("ingredient_admin_description") }}
+            </p>
+        </div>
+
+        <div class="admin-dashboard-stats">
+            <strong>
+                {{ active_ingredients }}
+            </strong>
+
+            <span>
+                {{ t("admin_active") }}
+            </span>
+
+            <small>
+                {{ total_ingredients }}
+                {{ t("admin_total") }}
+            </small>
+        </div>
+    </a>
+
+</section>
+
+{% endblock %}

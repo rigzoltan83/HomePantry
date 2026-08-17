@@ -3,6 +3,19 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+        "search": "Keresés",
+        "clear": "Törlés",
+        "admin_dashboard_title": (
+            "Adminisztráció"
+        ),
+        "admin_dashboard_description": (
+            "A HomePantry törzsadatainak és "
+            "felhasználóinak karbantartása."
+        ),
+        "admin_total": "összesen",
+
+        "pagination_previous": "Előző",
+        "pagination_next": "Következő",
         "dashboard_title": "Áttekintés",
         "dashboard_welcome": "Szia",
         "dashboard_household": "Háztartás",
@@ -507,6 +520,18 @@ TRANSLATIONS = {
     },
 
     "en": {
+        "search": "Search",
+        "clear": "Clear",
+        "admin_dashboard_title": (
+            "Administration"
+        ),
+        "admin_dashboard_description": (
+            "Manage HomePantry users and master data."
+        ),
+        "admin_total": "total",
+
+        "pagination_previous": "Previous",
+        "pagination_next": "Next",
         "dashboard_title": "Overview",
         "dashboard_welcome": "Hello",
         "dashboard_household": "Household",
