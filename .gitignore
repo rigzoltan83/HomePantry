@@ -42,3 +42,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Runtime / cache
+.cache/
+.gunicorn/
