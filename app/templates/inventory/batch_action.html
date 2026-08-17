@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% if action == "consume" %}
+    {% set page_title = t("movement_consume_title") %}
+{% elif action == "discard" %}
+    {% set page_title = t("movement_discard_title") %}
+{% elif action == "adjust" %}
+    {% set page_title = t("movement_adjust_title") %}
+{% else %}
+    {% set page_title = t("movement_transfer_title") %}
+{% endif %}
+
+{% block title %}
+{{ page_title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+
+    <h1>
+        {{ page_title }}
+    </h1>
+
+    <div class="movement-batch-summary">
+        <strong>
+            {% if batch.product %}
+                {% if batch.product.brand %}
+                    {{ batch.product.brand }}
+                    —
+                {% endif %}
+
+                {{ batch.product.name }}
+            {% else %}
+                {{ t("inventory_bulk_label") }}
+            {% endif %}
+        </strong>
+
+        <div class="muted">
+            {{ t("movement_current_quantity") }}:
+            {{ batch.quantity }}
+            {{ batch.unit.symbol }}
+        </div>
+
+        <div class="muted">
+            {{
+                build_location_path(
+                    batch.storage_location
+                )
+                if build_location_path is defined
+                else ""
+            }}
+        </div>
+    </div>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        {% if action in ["consume", "discard", "adjust"] %}
+
+            <div class="field">
+                {{ form.quantity.label }}
+                {{ form.quantity() }}
+
+                {% for error in form.quantity.errors %}
+                    <div class="field-error">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="field">
+                {{ form.unit_id.label }}
+                {{ form.unit_id() }}
+            </div>
+
+        {% endif %}
+
+        {% if action == "transfer" %}
+
+            <div class="field">
+                {{ form.storage_location_id.label }}
+                {{ form.storage_location_id() }}
+            </div>
+
+        {% endif %}
+
+        <div class="field">
+            {{ form.note.label }}
+            {{ form.note(rows=4) }}
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(
+                class="primary-button auto-width"
+            ) }}
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.inventory_list'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

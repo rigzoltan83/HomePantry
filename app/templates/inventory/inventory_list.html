@@ -30,95 +30,349 @@
 </div>
 
 <section class="panel">
-    {% if batches %}
-        <div class="inventory-table-wrap">
-            <table class="inventory-table">
-                <thead>
-                    <tr>
-                        <th>
-                            {{ t("inventory_col_ingredient") }}
-                        </th>
-                        <th>
-                            {{ t("inventory_col_product") }}
-                        </th>
-                        <th>
-                            {{ t("inventory_col_quantity") }}
-                        </th>
-                        <th>
-                            {{ t("inventory_col_location") }}
-                        </th>
-                        <th>
-                            {{ t("inventory_col_expiration") }}
-                        </th>
-                    </tr>
-                </thead>
 
-                <tbody>
-                    {% for batch in batches %}
-                        <tr>
-                            <td>
-                                {% set ns = namespace(name=None) %}
+    <div class="inventory-toolbar">
 
-                                {% for translation in batch.ingredient.translations %}
-                                    {% if translation.language_code == current_user.preferred_language %}
-                                        {% set ns.name = translation.name %}
-                                    {% endif %}
-                                {% endfor %}
+        <input
+            type="search"
+            id="inventory-list-search"
+            class="list-search-input"
+            placeholder="{{
+                t(
+                    'inventory_search_placeholder'
+                )
+            }}"
+            autocomplete="off"
+        >
 
-                                {% if not ns.name %}
-                                    {% for translation in batch.ingredient.translations %}
-                                        {% if translation.language_code == "hu" %}
-                                            {% set ns.name = translation.name %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
+        <div class="inventory-filter-buttons">
+            <button
+                type="button"
+                class="secondary-button js-inventory-filter active"
+                data-filter="all"
+            >
+                {{ t("inventory_filter_all") }}
+            </button>
 
-                                {{
-                                    ns.name
-                                    or batch.ingredient.canonical_key
-                                }}
-                            </td>
+            <button
+                type="button"
+                class="secondary-button js-inventory-filter"
+                data-filter="low"
+            >
+                {{ t("inventory_filter_low") }}
+            </button>
 
-                            <td>
-                                {% if batch.product %}
-                                    {{ batch.product.name }}
-                                {% else %}
-                                    <span class="muted">
-                                        {{ t("inventory_bulk_label") }}
+            <button
+                type="button"
+                class="secondary-button js-inventory-filter"
+                data-filter="expiring"
+            >
+                {{ t("inventory_filter_expiring") }}
+            </button>
+
+            <button
+                type="button"
+                class="secondary-button js-inventory-filter"
+                data-filter="expired"
+            >
+                {{ t("inventory_filter_expired") }}
+            </button>
+        </div>
+
+    </div>
+
+    {% if inventory_groups %}
+
+        <div class="inventory-groups">
+
+            {% for group in inventory_groups %}
+
+                <details
+                    class="inventory-group js-inventory-group"
+                    data-inventory-search="{{
+                        group.search_text
+                    }}"
+                    data-low="{{
+                        '1'
+                        if group.is_low_stock
+                        else '0'
+                    }}"
+                    data-expiring="{{
+                        '1'
+                        if group.has_expiring
+                        else '0'
+                    }}"
+                    data-expired="{{
+                        '1'
+                        if group.has_expired
+                        else '0'
+                    }}"
+                >
+                    <summary
+                        class="inventory-group-summary"
+                    >
+                        <div
+                            class="inventory-group-title"
+                        >
+                            <div
+                                class="inventory-title-line"
+                            >
+                                <strong>
+                                    {{ group.name }}
+                                </strong>
+
+                                {% if group.is_low_stock %}
+                                    <span
+                                        class="inventory-badge inventory-badge-warning"
+                                    >
+                                        {{ t("inventory_status_low") }}
                                     </span>
                                 {% endif %}
-                            </td>
 
-                            <td>
-                                {{ batch.quantity }}
-                                {{ batch.unit.symbol }}
-                            </td>
-
-                            <td>
-                                {{
-                                    build_location_path(
-                                        batch.storage_location
-                                    )
-                                }}
-                            </td>
-
-                            <td>
-                                {% if batch.expiration_date %}
-                                    {{ batch.expiration_date }}
-                                {% else %}
-                                    —
+                                {% if group.has_expired %}
+                                    <span
+                                        class="inventory-badge inventory-badge-danger"
+                                    >
+                                        {{ t("inventory_status_expired") }}
+                                    </span>
+                                {% elif group.has_expiring %}
+                                    <span
+                                        class="inventory-badge inventory-badge-warning"
+                                    >
+                                        {{ t("inventory_status_expiring") }}
+                                    </span>
                                 {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </div>
+
+                            <span class="muted">
+                                {{ group.batches|length }}
+                                {{ t("inventory_batch_count") }}
+                            </span>
+
+                            {% if group.stock_rule %}
+                                <span class="muted">
+                                    {{ t("inventory_minimum_stock") }}:
+                                    {{ group.stock_rule.quantity }}
+                                    {{ group.stock_rule.symbol }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div
+                            class="inventory-group-total"
+                        >
+                            {% for total in group.display_totals %}
+                                <span>
+                                    {{ total.quantity }}
+                                    {{ total.symbol }}
+                                </span>
+
+                                {% if not loop.last %}
+                                    <span>+</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </summary>
+
+                    <div
+                        class="inventory-batch-list"
+                    >
+
+                        {% for batch in group.batches %}
+
+                            <article
+                                class="
+                                    inventory-batch-card
+                                    {% if batch.expiry_status == 'expired' %}
+                                        inventory-batch-expired
+                                    {% elif batch.expiry_status == 'expiring' %}
+                                        inventory-batch-expiring
+                                    {% endif %}
+                                "
+                            >
+                                <div
+                                    class="inventory-batch-main"
+                                >
+                                    <div>
+                                        <strong>
+                                            {% if batch.product %}
+                                                {% if batch.product.brand %}
+                                                    {{ batch.product.brand }}
+                                                    —
+                                                {% endif %}
+
+                                                {{ batch.product.name }}
+                                            {% else %}
+                                                {{ t("inventory_bulk_label") }}
+                                            {% endif %}
+                                        </strong>
+
+                                        {% if batch.expiry_status == "expired" %}
+                                            <span
+                                                class="inventory-badge inventory-badge-danger"
+                                            >
+                                                {{ t("inventory_status_expired") }}
+                                            </span>
+                                        {% elif batch.expiry_status == "expiring" %}
+                                            <span
+                                                class="inventory-badge inventory-badge-warning"
+                                            >
+                                                {{ t("inventory_status_expiring") }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div
+                                        class="inventory-batch-quantity"
+                                    >
+                                        {{ batch.quantity }}
+                                        {{ batch.unit.symbol }}
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="inventory-batch-details"
+                                >
+                                    <div>
+                                        <span class="muted">
+                                            {{ t("inventory_col_location") }}
+                                        </span>
+
+                                        <strong>
+                                            {{
+                                                build_location_path(
+                                                    batch.storage_location
+                                                )
+                                            }}
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span class="muted">
+                                            {{ t("inventory_col_purchase") }}
+                                        </span>
+
+                                        <strong>
+                                            {% if batch.purchase_date %}
+                                                {{ batch.purchase_date }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span class="muted">
+                                            {{ t("inventory_col_expiration") }}
+                                        </span>
+
+                                        <strong>
+                                            {% if batch.expiration_date %}
+                                                {{ batch.expiration_date }}
+                                            {% else %}
+                                                {{ t("inventory_no_expiration") }}
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                {% if batch.product and batch.product.barcodes %}
+                                    <div
+                                        class="inventory-batch-barcode muted"
+                                    >
+                                        {{
+                                            batch.product.barcodes[0].barcode
+                                        }}
+                                    </div>
+                                {% endif %}
+
+                                {% if batch.note %}
+                                    <div
+                                        class="inventory-batch-note"
+                                    >
+                                        {{ batch.note }}
+                                    </div>
+                                {% endif %}
+                                <div
+                                    class="inventory-batch-actions"
+                                >
+                                    <a
+                                        class="secondary-button"
+                                        href="{{
+                                            url_for(
+                                                'inventory.batch_quantity_action',
+                                                public_id=batch.public_id,
+                                                action='consume'
+                                            )
+                                        }}"
+                                    >
+                                        {{ t("movement_consume") }}
+                                    </a>
+
+                                    <a
+                                        class="secondary-button"
+                                        href="{{
+                                            url_for(
+                                                'inventory.batch_quantity_action',
+                                                public_id=batch.public_id,
+                                                action='discard'
+                                            )
+                                        }}"
+                                    >
+                                        {{ t("movement_discard") }}
+                                    </a>
+
+                                    <a
+                                        class="secondary-button"
+                                        href="{{
+                                            url_for(
+                                                'inventory.batch_adjust',
+                                                public_id=batch.public_id
+                                            )
+                                        }}"
+                                    >
+                                        {{ t("movement_adjust") }}
+                                    </a>
+
+                                    <a
+                                        class="secondary-button"
+                                        href="{{
+                                            url_for(
+                                                'inventory.batch_transfer',
+                                                public_id=batch.public_id
+                                            )
+                                        }}"
+                                    >
+                                        {{ t("movement_transfer") }}
+                                    </a>
+                                </div>
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+                </details>
+
+            {% endfor %}
+
         </div>
+
+        <p
+            id="inventory-search-empty"
+            class="muted"
+            hidden
+        >
+            {{ t("inventory_empty") }}
+        </p>
+
     {% else %}
+
         <p>
             {{ t("inventory_empty") }}
         </p>
+
     {% endif %}
+
 </section>
 
 {% endblock %}

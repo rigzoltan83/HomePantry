@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("movements_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>
+            {{ t("movements_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("movements_description") }}
+        </p>
+    </div>
+</div>
+
+<section class="panel">
+
+    <div class="list-search">
+        <input
+            type="search"
+            id="movement-list-search"
+            class="list-search-input"
+            placeholder="{{
+                t(
+                    'movements_search_placeholder'
+                )
+            }}"
+            autocomplete="off"
+        >
+    </div>
+
+    {% if movements %}
+
+        <div class="inventory-table-wrap">
+
+            <table class="inventory-table movement-table">
+
+                <thead>
+                    <tr>
+                        <th>
+                            {{ t("movement_col_time") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_ingredient") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_product") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_type") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_change") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_before_after") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_user") }}
+                        </th>
+
+                        <th>
+                            {{ t("movement_col_note") }}
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for movement in movements %}
+
+                        {% set batch = movement.inventory_batch %}
+
+                        <tr
+                            class="js-movement-row"
+                            data-movement-search="
+                                {{
+                                    get_ingredient_display_name(
+                                        batch.ingredient
+                                    )
+                                }}
+
+                                {% if batch.product %}
+                                    {{ batch.product.name }}
+                                    {{ batch.product.brand or '' }}
+                                {% endif %}
+
+                                {{ movement.movement_type }}
+                                {{ movement.note or '' }}
+
+                                {% if movement.created_by_user %}
+                                    {{ movement.created_by_user.display_name }}
+                                    {{ movement.created_by_user.username }}
+                                {% endif %}
+                            "
+                        >
+                            <td class="movement-time">
+                                {{
+                                    movement.created_at
+                                    .strftime(
+                                        "%Y-%m-%d %H:%M"
+                                    )
+                                }}
+                            </td>
+
+                            <td>
+                                {{
+                                    get_ingredient_display_name(
+                                        batch.ingredient
+                                    )
+                                }}
+                            </td>
+
+                            <td>
+                                {% if batch.product %}
+                                    {% if batch.product.brand %}
+                                        {{ batch.product.brand }}
+                                        —
+                                    {% endif %}
+
+                                    {{ batch.product.name }}
+                                {% else %}
+                                    <span class="muted">
+                                        {{ t("inventory_bulk_label") }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span
+                                    class="
+                                        movement-type
+                                        movement-type-{{ movement.movement_type }}
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            "movement_type_"
+                                            ~ movement.movement_type
+                                        )
+                                    }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if movement.quantity_delta > 0 %}
+                                    +
+                                {% endif %}
+
+                                {{ movement.quantity_delta }}
+                                {{ movement.unit.symbol }}
+                            </td>
+
+                            <td>
+                                {{ movement.quantity_before }}
+                                {{ movement.unit.symbol }}
+
+                                →
+
+                                {{ movement.quantity_after }}
+                                {{ movement.unit.symbol }}
+                            </td>
+
+                            <td>
+                                {% if movement.created_by_user %}
+                                    {{
+                                        movement.created_by_user
+                                        .display_name
+                                    }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if movement.note %}
+                                    {{ movement.note }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <p
+            id="movement-search-empty"
+            class="muted"
+            hidden
+        >
+            {{ t("movements_empty") }}
+        </p>
+
+    {% else %}
+
+        <p>
+            {{ t("movements_empty") }}
+        </p>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

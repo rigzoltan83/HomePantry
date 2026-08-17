@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ page_title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+
+    <h1>
+        {{ page_title }}
+    </h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            {{ form.ingredient_id.label }}
+
+            <div class="autocomplete-select">
+                {{ form.ingredient_id(
+                    class="js-autocomplete-select js-ingredient-select",
+                    data_unit_target="unit_id",
+                    data_unit_url=url_for(
+                        "inventory.ingredient_units_api"
+                    )
+                ) }}
+
+                <input
+                    type="text"
+                    class="autocomplete-input js-autocomplete-input"
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.minimum_quantity.label }}
+            {{ form.minimum_quantity() }}
+        </div>
+
+        <div class="field">
+            {{ form.unit_id.label }}
+            {{ form.unit_id() }}
+        </div>
+
+        <div class="field">
+            {{ form.note.label }}
+            {{ form.note(rows=4) }}
+        </div>
+
+        <div class="form-actions">
+
+            {{ form.submit(
+                class="primary-button auto-width"
+            ) }}
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.stock_rules'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

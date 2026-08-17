@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("stock_rule_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>
+            {{ t("stock_rule_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("stock_rule_description") }}
+        </p>
+    </div>
+
+    <a
+        class="primary-link"
+        href="{{
+            url_for(
+                'inventory.stock_rule_new'
+            )
+        }}"
+    >
+        {{ t("stock_rule_add") }}
+    </a>
+</div>
+
+<section class="panel">
+
+    {% if rules %}
+
+        <div class="inventory-table-wrap">
+            <table class="inventory-table">
+
+                <thead>
+                    <tr>
+                        <th>
+                            {{ t("inventory_field_ingredient") }}
+                        </th>
+
+                        <th>
+                            {{ t("stock_rule_minimum_quantity") }}
+                        </th>
+
+                        <th>
+                            {{ t("admin_active") }}
+                        </th>
+
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for rule in rules %}
+
+                        <tr
+                            {% if not rule.is_active %}
+                                class="inactive-row"
+                            {% endif %}
+                        >
+                            <td>
+                                {{
+                                    get_ingredient_display_name(
+                                        rule.ingredient
+                                    )
+                                }}
+                            </td>
+
+                            <td>
+                                {{ rule.minimum_quantity }}
+                                {{ rule.unit.symbol }}
+                            </td>
+
+                            <td>
+                                {% if rule.is_active %}
+                                    {{ t("admin_yes") }}
+                                {% else %}
+                                    {{ t("admin_no") }}
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="row-actions">
+
+                                    <a
+                                        href="{{
+                                            url_for(
+                                                'inventory.stock_rule_edit',
+                                                public_id=rule.public_id
+                                            )
+                                        }}"
+                                    >
+                                        {{ t("admin_edit") }}
+                                    </a>
+
+                                    <form
+                                        method="post"
+                                        action="{{
+                                            url_for(
+                                                'inventory.stock_rule_toggle',
+                                                public_id=rule.public_id
+                                            )
+                                        }}"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="link-button"
+                                        >
+                                            {% if rule.is_active %}
+                                                {{ t("product_deactivate") }}
+                                            {% else %}
+                                                {{ t("product_reactivate") }}
+                                            {% endif %}
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+
+        <p>
+            {{ t("stock_rule_description") }}
+        </p>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("product_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>{{ t("product_title") }}</h1>
+
+        <p class="muted">
+            {{ t("product_description") }}
+        </p>
+    </div>
+
+    <a
+        class="primary-link"
+        href="{{ url_for('inventory.product_new') }}"
+    >
+        {{ t("product_add") }}
+    </a>
+</div>
+
+<section class="panel">
+    <div class="list-search">
+        <input
+            type="search"
+            id="product-list-search"
+            class="list-search-input"
+            placeholder="{{ t('product_search_placeholder') }}"
+            autocomplete="off"
+        >
+    </div>
+    <div class="inventory-table-wrap">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>{{ t("product_field_name") }}</th>
+                    <th>{{ t("product_field_ingredient") }}</th>
+                    <th>{{ t("product_field_brand") }}</th>
+                    <th>{{ t("product_field_package_quantity") }}</th>
+                    <th>{{ t("product_field_barcode") }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for product in products %}
+                    <tr
+                        class="js-product-row{% if not product.is_active %} inactive-row{% endif %}"
+                        data-product-search="
+                            {{ product.name }}
+                            {{ product.brand or '' }}
+                            {{ product.ingredient.canonical_key }}
+
+                            {% for translation in product.ingredient.translations %}
+                                {{ translation.name }}
+                            {% endfor %}
+
+                            {% for barcode in product.barcodes %}
+                                {{ barcode.barcode }}
+                            {% endfor %}
+                        "
+                    >
+                        <td>
+                            <strong>
+                                {{ product.name }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {% set ns = namespace(name=None) %}
+
+                            {% for translation in product.ingredient.translations %}
+                                {% if translation.language_code == current_user.preferred_language %}
+                                    {% set ns.name = translation.name %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {{
+                                ns.name
+                                or product.ingredient.canonical_key
+                            }}
+                        </td>
+
+                        <td>
+                            {{ product.brand or "—" }}
+                        </td>
+
+                        <td>
+                            {% if product.package_quantity and product.package_unit %}
+                                {{ product.package_quantity }}
+                                {{ product.package_unit.symbol }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if product.barcodes %}
+                                {{ product.barcodes[0].barcode }}
+                            {% else %}
+                                <span class="muted">
+                                    {{ t("product_no_barcode") }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="row-actions">
+                                <a
+                                    href="{{
+                                        url_for(
+                                            'inventory.product_edit',
+                                            public_id=product.public_id
+                                        )
+                                    }}"
+                                >
+                                    {{ t("product_edit") }}
+                                </a>
+
+                                <form
+                                    method="post"
+                                    action="{{
+                                        url_for(
+                                            'inventory.product_toggle',
+                                            public_id=product.public_id
+                                        )
+                                    }}"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="link-button"
+                                    >
+                                        {% if product.is_active %}
+                                            {{ t("product_deactivate") }}
+                                        {% else %}
+                                            {{ t("product_reactivate") }}
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

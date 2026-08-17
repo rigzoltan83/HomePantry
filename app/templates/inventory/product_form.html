@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ page_title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+    <h1>{{ page_title }}</h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            <div class="field-label-actions">
+                {{ form.ingredient_id.label }}
+
+                <a
+                    class="small-action-link"
+                    href="{{
+                        url_for(
+                            'admin.ingredient_new',
+                            return_to='product_new'
+                        )
+                    }}"
+                >
+                    {{ t("product_add_ingredient") }}
+                </a>
+            </div>
+
+            <div class="autocomplete-select">
+                {{ form.ingredient_id(
+                    class="js-autocomplete-select js-ingredient-select",
+                    data_unit_target="package_unit_id",
+                    data_unit_url=url_for(
+                        "inventory.ingredient_units_api"
+                    )
+                ) }}
+
+                <input
+                    type="text"
+                    class="autocomplete-input js-autocomplete-input"
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.name.label }}
+            {{ form.name() }}
+        </div>
+
+        <div class="field">
+            {{ form.brand.label }}
+            {{ form.brand() }}
+        </div>
+
+        <div class="field">
+            {{ form.package_quantity.label }}
+            {{ form.package_quantity() }}
+        </div>
+
+        <div class="field">
+            {{ form.package_unit_id.label }}
+
+            {{ form.package_unit_id(
+                data_allow_empty="1",
+                data_empty_label=t(
+                    "product_no_package_unit"
+                )
+            ) }}
+        </div>
+
+        <div class="field barcode-product-field">
+            {{ form.barcode.label }}
+
+            <div class="barcode-input-row">
+                {{ form.barcode(
+                    inputmode="numeric",
+                    autocomplete="off",
+                    class="js-product-barcode-input"
+                ) }}
+
+                <button
+                    type="button"
+                    class="secondary-button js-product-scan-button"
+                >
+                    {{ t("barcode_scan") }}
+                </button>
+            </div>
+
+            <div
+                class="barcode-status js-product-barcode-status"
+            ></div>
+
+            <div
+                class="barcode-scanner-wrap js-product-barcode-scanner-wrap"
+                hidden
+            >
+                <div
+                    class="barcode-scanner js-product-barcode-scanner"
+                ></div>
+
+                <button
+                    type="button"
+                    class="secondary-button barcode-close-button js-product-barcode-close-button"
+                >
+                    {{ t("barcode_stop_scan") }}
+                </button>
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.barcode_type.label }}
+            {{ form.barcode_type() }}
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(
+                class="primary-button auto-width"
+            ) }}
+
+            <a href="{{ url_for('inventory.products') }}">
+                {{ t("cancel") }}
+            </a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

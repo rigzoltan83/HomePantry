@@ -44,6 +44,32 @@
                     </a>
 
                     <a
+                        href="{{ url_for('inventory.products') }}"
+                    >
+                        {{ t("nav_products") }}
+                    </a>
+
+                    <a
+                        href="{{
+                            url_for(
+                                'inventory.stock_rules'
+                            )
+                        }}"
+                    >
+                        {{ t("nav_stock_rules") }}
+                    </a>
+
+                    <a
+                        href="{{
+                            url_for(
+                                'inventory.movements'
+                            )
+                        }}"
+                    >
+                        {{ t("nav_movements") }}
+                    </a>
+
+                    <a
                         href="{{ url_for('inventory.locations') }}"
                     >
                         {{ t("nav_storage") }}
@@ -73,6 +99,15 @@
                             >
                                 {{ t("nav_admin") }}
                             </a>
+<a
+    href="{{
+        url_for(
+            'admin.ingredients'
+        )
+    }}"
+>
+    {{ t("nav_ingredients_admin") }}
+</a>
                         {% endif %}
                     {% endif %}
 
@@ -122,5 +157,51 @@
         {% block content %}
         {% endblock %}
     </main>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='vendor/quagga.min.js'
+        )
+    }}"
+></script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/autocomplete-select.js'
+        )
+    }}"
+></script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/barcode-scanner.js'
+        )
+    }}"
+></script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/inventory-list.js'
+        )
+    }}"
+></script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/movement-list.js'
+        )
+    }}"
+></script>
+
 </body>
 </html>

@@ -14,15 +14,168 @@
         novalidate
     >
         {{ form.hidden_tag() }}
+        {% if form.errors %}
+            <div class="form-error-summary">
+                <strong>
+                    A megadott adatok között hiba van:
+                </strong>
+
+                <ul>
+                    {% for field_name, errors in form.errors.items() %}
+                        {% for error in errors %}
+                            <li>
+                                {{ field_name }}:
+                                {{ error }}
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
         <div class="field">
             {{ form.ingredient_id.label }}
-            {{ form.ingredient_id() }}
+
+            <div class="autocomplete-select">
+                {{ form.ingredient_id(
+                    class="js-autocomplete-select js-ingredient-select",
+                    data_unit_target="unit_id",
+                    data_unit_url=url_for(
+                        "inventory.ingredient_units_api"
+                    )
+                ) }}
+
+                <input
+                    type="text"
+                    class="autocomplete-input js-autocomplete-input"
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+            </div>
+        </div>
+
+        <div
+            class="barcode-lookup"
+            data-lookup-url="{{
+                url_for(
+                    'inventory.barcode_lookup_api'
+                )
+            }}"
+        >
+            <label for="inventory-barcode-lookup">
+                {{ t("barcode_lookup") }}
+            </label>
+
+            <div class="barcode-input-row">
+                {{ form.barcode(
+                    id="inventory-barcode-lookup",
+                    class="js-barcode-lookup-input",
+                    inputmode="numeric",
+                    autocomplete="off",
+                    placeholder=t(
+                        "barcode_lookup_placeholder"
+                    )
+                ) }}
+
+                <button
+                    type="button"
+                    class="secondary-button js-barcode-lookup-button"
+                >
+                    {{ t("barcode_lookup") }}
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-button js-barcode-scan-button"
+                >
+                    {{ t("barcode_scan") }}
+                </button>
+            </div>
+
+            <div
+                class="barcode-status js-barcode-status"
+            ></div>
+
+            <div
+                class="barcode-scanner-wrap js-barcode-scanner-wrap"
+                hidden
+            >
+                <div
+                    class="barcode-scanner js-barcode-scanner"
+                ></div>
+
+                <button
+                    type="button"
+                    class="secondary-button barcode-close-button js-barcode-close-button"
+                >
+                    {{ t("barcode_stop_scan") }}
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="panel barcode-new-product js-barcode-new-product"
+            hidden
+        >
+            <h3>
+                {{ t("barcode_create_product") }}
+            </h3>
+
+            <div class="field">
+                <label for="new_product_name">
+                    {{ t("barcode_new_product_name") }}
+                </label>
+
+                {{ form.new_product_name() }}
+
+                {% for error in form.new_product_name.errors %}
+                    <div class="field-error">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="field">
+                <label for="new_product_brand">
+                    {{ t("barcode_new_product_brand") }}
+                </label>
+
+                {{ form.new_product_brand() }}
+            </div>
+
+            <p class="field-help">
+                {{ t("inventory_field_ingredient") }},
+                {{ t("inventory_field_quantity") }}
+                és
+                {{ t("inventory_field_unit") }}
+                értékét az alábbi készlettétel mezőiből
+                használjuk az új termékhez is.
+            </p>
         </div>
 
         <div class="field">
             {{ form.product_id.label }}
-            {{ form.product_id() }}
+
+            <div class="autocomplete-select">
+                {{ form.product_id(
+                    class="js-autocomplete-select"
+                ) }}
+
+                <input
+                    type="text"
+                    class="autocomplete-input js-autocomplete-input"
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+            </div>
 
             <div class="field-help">
                 {{ t("inventory_bulk_help") }}

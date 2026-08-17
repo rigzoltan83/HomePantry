@@ -73,6 +73,27 @@ class InventoryBatchForm(FlaskForm):
         ],
     )
 
+    barcode = StringField(
+        validators=[
+            Optional(),
+            Length(max=64),
+        ],
+    )
+
+    new_product_name = StringField(
+        validators=[
+            Optional(),
+            Length(max=255),
+        ],
+    )
+
+    new_product_brand = StringField(
+        validators=[
+            Optional(),
+            Length(max=160),
+        ],
+    )
+
     storage_location_id = SelectField(
         choices=[],
         coerce=int,
@@ -120,4 +141,182 @@ class InventoryBatchForm(FlaskForm):
 
     submit = SubmitField()
 
+class ProductForm(FlaskForm):
+    ingredient_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
 
+    name = StringField(
+        validators=[
+            DataRequired(),
+            Length(
+                min=1,
+                max=255,
+            ),
+        ],
+    )
+
+    brand = StringField(
+        validators=[
+            Optional(),
+            Length(max=160),
+        ],
+    )
+
+    package_quantity = DecimalField(
+        places=6,
+        validators=[
+            Optional(),
+            NumberRange(
+                min=0.000001,
+            ),
+        ],
+    )
+
+    package_unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            Optional(),
+        ],
+    )
+
+    barcode = StringField(
+        validators=[
+            Optional(),
+            Length(max=64),
+        ],
+    )
+
+    barcode_type = SelectField(
+        choices=[
+            ("", "—"),
+            ("ean13", "EAN-13"),
+            ("ean8", "EAN-8"),
+            ("upca", "UPC-A"),
+            ("upce", "UPC-E"),
+            ("code128", "CODE-128"),
+            ("other", "Other"),
+        ],
+        validators=[
+            Optional(),
+        ],
+    )
+
+    submit = SubmitField()
+
+class BatchQuantityActionForm(FlaskForm):
+    quantity = DecimalField(
+        places=6,
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0.000001,
+            ),
+        ],
+    )
+
+    unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()
+
+
+class BatchAdjustmentForm(FlaskForm):
+    quantity = DecimalField(
+        places=6,
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0,
+            ),
+        ],
+    )
+
+    unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()
+
+
+class BatchTransferForm(FlaskForm):
+    storage_location_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()
+
+class StockRuleForm(FlaskForm):
+    ingredient_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    minimum_quantity = DecimalField(
+        places=6,
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0,
+            ),
+        ],
+    )
+
+    unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()

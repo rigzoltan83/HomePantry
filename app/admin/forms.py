@@ -6,11 +6,14 @@ from wtforms import (
     SelectField,
     StringField,
     SubmitField,
+    SelectMultipleField,
+    TextAreaField,
 )
 from wtforms.validators import (
     DataRequired,
     Email,
     Length,
+    Optional,
 )
 
 
@@ -153,6 +156,66 @@ class NewHouseholdUserForm(FlaskForm):
         validators=[
             DataRequired(),
         ],
+    )
+
+    submit = SubmitField()
+
+class IngredientAdminForm(FlaskForm):
+    name_hu = StringField(
+        validators=[
+            DataRequired(),
+            Length(
+                min=1,
+                max=200,
+            ),
+        ],
+    )
+
+    name_en = StringField(
+        validators=[
+            Optional(),
+            Length(max=200),
+        ],
+    )
+
+    category_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            Optional(),
+        ],
+    )
+
+    default_unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    allowed_unit_ids = SelectMultipleField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    aliases_hu = TextAreaField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    aliases_en = TextAreaField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    is_active = BooleanField(
+        default=True,
     )
 
     submit = SubmitField()
