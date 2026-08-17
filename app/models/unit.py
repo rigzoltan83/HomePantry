@@ -40,8 +40,8 @@ class Unit(db.Model):
 
     factor_to_base = db.Column(
         db.Numeric(
-            precision=18,
-            scale=6,
+            precision=24,
+            scale=12,
         ),
         nullable=False,
         default=Decimal("1"),
