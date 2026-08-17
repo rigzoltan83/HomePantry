@@ -38,10 +38,43 @@
                 <div class="header-user">
 
                     <a
+                        href="{{ url_for('inventory.inventory_list') }}"
+                    >
+                        {{ t("nav_inventory") }}
+                    </a>
+
+                    <a
                         href="{{ url_for('inventory.locations') }}"
                     >
-                        Storage
+                        {{ t("nav_storage") }}
                     </a>
+
+                    <a
+                        href="{{ url_for('admin.profile') }}"
+                    >
+                        {{ t("nav_profile") }}
+                    </a>
+
+                    {% if current_user.memberships %}
+                        {% set ns = namespace(can_admin=false) %}
+
+                        {% for membership in current_user.memberships %}
+                            {% if
+                                membership.is_active
+                                and membership.role in ["owner", "admin"]
+                            %}
+                                {% set ns.can_admin = true %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if ns.can_admin %}
+                            <a
+                                href="{{ url_for('admin.users') }}"
+                            >
+                                {{ t("nav_admin") }}
+                            </a>
+                        {% endif %}
+                    {% endif %}
 
                     <span>
                         {{ current_user.display_name }}
@@ -61,7 +94,7 @@
                             class="link-button"
                             type="submit"
                         >
-                            Logout
+                            {{ t("nav_logout") }}
                         </button>
                     </form>
                 </div>

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("inventory_add") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+    <h1>{{ t("inventory_add") }}</h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            {{ form.ingredient_id.label }}
+            {{ form.ingredient_id() }}
+        </div>
+
+        <div class="field">
+            {{ form.product_id.label }}
+            {{ form.product_id() }}
+
+            <div class="field-help">
+                {{ t("inventory_bulk_help") }}
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.storage_location_id.label }}
+            {{ form.storage_location_id() }}
+        </div>
+
+        <div class="field">
+            {{ form.quantity.label }}
+            {{ form.quantity() }}
+
+            {% for error in form.quantity.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.unit_id.label }}
+            {{ form.unit_id() }}
+        </div>
+
+        <div class="field">
+            {{ form.purchase_date.label }}
+            {{ form.purchase_date() }}
+        </div>
+
+        <div class="field">
+            {{ form.expiration_date.label }}
+            {{ form.expiration_date() }}
+        </div>
+
+        <div class="field">
+            {{ form.note.label }}
+            {{ form.note(rows=4) }}
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(
+                class="primary-button auto-width"
+            ) }}
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.inventory_list'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

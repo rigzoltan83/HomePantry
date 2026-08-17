@@ -1,9 +1,12 @@
 from flask_wtf import FlaskForm
 from wtforms import (
+    DateField,
+    DecimalField,
     IntegerField,
     SelectField,
     StringField,
     SubmitField,
+    TextAreaField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -15,7 +18,6 @@ from wtforms.validators import (
 
 class StorageLocationForm(FlaskForm):
     name = StringField(
-        "Name",
         validators=[
             DataRequired(),
             Length(
@@ -26,24 +28,14 @@ class StorageLocationForm(FlaskForm):
     )
 
     location_type = SelectField(
-        "Type",
-        choices=[
-            ("room", "Room"),
-            ("cabinet", "Cabinet"),
-            ("shelf", "Shelf"),
-            ("fridge", "Fridge"),
-            ("freezer", "Freezer"),
-            ("drawer", "Drawer"),
-            ("box", "Box"),
-            ("storage", "Other storage"),
-        ],
+        choices=[],
         validators=[
             DataRequired(),
         ],
     )
 
     parent_id = SelectField(
-        "Parent location",
+        choices=[],
         coerce=int,
         validators=[
             Optional(),
@@ -51,7 +43,6 @@ class StorageLocationForm(FlaskForm):
     )
 
     sort_order = IntegerField(
-        "Sort order",
         default=100,
         validators=[
             DataRequired(),
@@ -62,6 +53,71 @@ class StorageLocationForm(FlaskForm):
         ],
     )
 
-    submit = SubmitField(
-        "Save"
+    submit = SubmitField()
+
+
+class InventoryBatchForm(FlaskForm):
+    ingredient_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
     )
+
+    product_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            Optional(),
+        ],
+    )
+
+    storage_location_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    quantity = DecimalField(
+        places=6,
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0.000001
+            ),
+        ],
+    )
+
+    unit_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    purchase_date = DateField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    expiration_date = DateField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()
+
+

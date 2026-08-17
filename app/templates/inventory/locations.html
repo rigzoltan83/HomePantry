@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}
-Storage locations · HomePantry
+{{ t("storage_title") }} · HomePantry
 {% endblock %}
 
 {% block content %}
 
 <div class="page-heading">
     <div>
-        <h1>Storage locations</h1>
+        <h1>
+            {{ t("storage_title") }}
+        </h1>
 
         <p class="muted">
-            Manage rooms, fridges, freezers,
-            shelves and other storage locations.
+            {{ t("storage_description") }}
         </p>
     </div>
 
@@ -20,26 +21,36 @@ Storage locations · HomePantry
         class="primary-link"
         href="{{ url_for('inventory.location_new') }}"
     >
-        Add location
+        {{ t("storage_add") }}
     </a>
 </div>
 
 <section class="panel">
-    <h2>Active locations</h2>
+    <h2>
+        {{ t("storage_active") }}
+    </h2>
 
-    {% if active_locations %}
+    {% if active_tree %}
         <div class="location-list">
-            {% for location in active_locations %}
-                <article class="location-row">
-                    <div class="location-main">
+            {% for location, depth in active_tree %}
+                <article
+                    class="location-row"
+                    style="--tree-depth: {{ depth }}"
+                >
+                    <div class="location-main tree-item">
                         <strong>
-                            {{ build_location_path(location) }}
+                            {% if depth > 0 %}
+                                <span class="tree-marker">
+                                    ↳
+                                </span>
+                            {% endif %}
+
+                            {{ location.name }}
                         </strong>
 
                         <span class="muted">
                             {{
-                                location_type_labels.get(
-                                    location.location_type,
+                                get_location_type_label(
                                     location.location_type
                                 )
                             }}
@@ -55,7 +66,7 @@ Storage locations · HomePantry
                                 )
                             }}"
                         >
-                            Edit
+                            {{ t("storage_edit") }}
                         </a>
 
                         <form
@@ -77,7 +88,7 @@ Storage locations · HomePantry
                                 type="submit"
                                 class="link-button danger-link"
                             >
-                                Deactivate
+                                {{ t("storage_deactivate") }}
                             </button>
                         </form>
                     </div>
@@ -86,25 +97,36 @@ Storage locations · HomePantry
         </div>
     {% else %}
         <p>
-            No storage locations yet.
+            {{ t("storage_empty") }}
         </p>
     {% endif %}
 </section>
 
-{% if inactive_locations %}
+{% if inactive_tree %}
 <section class="panel">
-    <h2>Inactive locations</h2>
+    <h2>
+        {{ t("storage_inactive") }}
+    </h2>
 
     <div class="location-list">
-        {% for location in inactive_locations %}
-            <article class="location-row inactive-row">
-                <div class="location-main">
+        {% for location, depth in inactive_tree %}
+            <article
+                class="location-row inactive-row"
+                style="--tree-depth: {{ depth }}"
+            >
+                <div class="location-main tree-item">
                     <strong>
-                        {{ build_location_path(location) }}
+                        {% if depth > 0 %}
+                            <span class="tree-marker">
+                                ↳
+                            </span>
+                        {% endif %}
+
+                        {{ location.name }}
                     </strong>
 
                     <span class="muted">
-                        Inactive
+                        {{ t("storage_inactive_label") }}
                     </span>
                 </div>
 
@@ -128,7 +150,7 @@ Storage locations · HomePantry
                             type="submit"
                             class="link-button"
                         >
-                            Reactivate
+                            {{ t("storage_reactivate") }}
                         </button>
                     </form>
                 </div>

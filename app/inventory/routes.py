@@ -9,28 +9,51 @@ from flask_login import (
     current_user,
     login_required,
 )
-from sqlalchemy import select
+from sqlalchemy import (
+    or_,
+    select,
+)
 
 from app.extensions import db
+from app.i18n import translate
 from app.models import (
     HouseholdMember,
+    Ingredient,
+    IngredientTranslation,
+    IngredientUnit,
+    InventoryBatch,
+    InventoryMovement,
+    Product,
     StorageLocation,
+    Unit,
+    UnitTranslation,
 )
 
 from . import bp
-from .forms import StorageLocationForm
+from .forms import (
+    InventoryBatchForm,
+    StorageLocationForm,
+)
 
 
-LOCATION_TYPE_LABELS = {
-    "room": "Room",
-    "cabinet": "Cabinet",
-    "shelf": "Shelf",
-    "fridge": "Fridge",
-    "freezer": "Freezer",
-    "drawer": "Drawer",
-    "box": "Box",
-    "storage": "Other storage",
-}
+LOCATION_TYPES = [
+    "room",
+    "cabinet",
+    "shelf",
+    "fridge",
+    "freezer",
+    "drawer",
+    "box",
+    "storage",
+]
+
+
+def get_location_type_label(
+    location_type,
+):
+    return translate(
+        f"location_type_{location_type}"
+    )
 
 
 def get_current_membership():
@@ -104,6 +127,62 @@ def build_location_path(
     )
 
 
+def build_location_tree(
+    locations,
+):
+    children_by_parent = {}
+
+    for location in locations:
+        children_by_parent.setdefault(
+            location.parent_id,
+            [],
+        ).append(
+            location
+        )
+
+    for children in (
+        children_by_parent.values()
+    ):
+        children.sort(
+            key=lambda item: (
+                item.sort_order,
+                item.name.lower(),
+                item.id,
+            )
+        )
+
+    result = []
+
+    def walk(
+        parent_id,
+        depth,
+    ):
+        for location in (
+            children_by_parent.get(
+                parent_id,
+                []
+            )
+        ):
+            result.append(
+                (
+                    location,
+                    depth,
+                )
+            )
+
+            walk(
+                location.id,
+                depth + 1,
+            )
+
+    walk(
+        None,
+        0,
+    )
+
+    return result
+
+
 def get_location_choices(
     household_id,
     excluded_location=None,
@@ -116,10 +195,6 @@ def get_location_choices(
             StorageLocation.is_active.is_(
                 True
             ),
-        )
-        .order_by(
-            StorageLocation.sort_order,
-            StorageLocation.name,
         )
     ).all()
 
@@ -142,22 +217,41 @@ def get_location_choices(
             excluded_location
         )
 
+    filtered_locations = [
+        location
+        for location in locations
+        if location.id not in excluded_ids
+    ]
+
+    tree = build_location_tree(
+        filtered_locations
+    )
+
     choices = [
         (
             0,
-            "— No parent —",
+            translate("no_parent"),
         )
     ]
 
-    for location in locations:
-        if location.id in excluded_ids:
-            continue
+    for location, depth in tree:
+        prefix = (
+            "    " * depth
+        )
+
+        marker = (
+            "↳ "
+            if depth > 0
+            else ""
+        )
 
         choices.append(
             (
                 location.id,
-                build_location_path(
-                    location
+                (
+                    f"{prefix}"
+                    f"{marker}"
+                    f"{location.name}"
                 ),
             )
         )
@@ -178,10 +272,6 @@ def locations():
             StorageLocation.household_id
             == household_id
         )
-        .order_by(
-            StorageLocation.sort_order,
-            StorageLocation.name,
-        )
     ).all()
 
     active_locations = [
@@ -196,15 +286,20 @@ def locations():
         if not location.is_active
     ]
 
+    active_tree = build_location_tree(
+        active_locations
+    )
+
+    inactive_tree = build_location_tree(
+        inactive_locations
+    )
+
     return render_template(
         "inventory/locations.html",
-        active_locations=active_locations,
-        inactive_locations=inactive_locations,
-        location_type_labels=(
-            LOCATION_TYPE_LABELS
-        ),
-        build_location_path=(
-            build_location_path
+        active_tree=active_tree,
+        inactive_tree=inactive_tree,
+        get_location_type_label=(
+            get_location_type_label
         ),
     )
 
@@ -223,6 +318,36 @@ def location_new():
     )
 
     form = StorageLocationForm()
+
+    form.name.label.text = translate(
+        "field_name"
+    )
+
+    form.location_type.label.text = (
+        translate("field_type")
+    )
+
+    form.parent_id.label.text = (
+        translate("field_parent")
+    )
+
+    form.sort_order.label.text = (
+        translate("field_sort_order")
+    )
+
+    form.submit.label.text = translate(
+        "save"
+    )
+
+    form.location_type.choices = [
+        (
+            location_type,
+            get_location_type_label(
+                location_type
+            ),
+        )
+        for location_type in LOCATION_TYPES
+    ]
 
     form.parent_id.choices = (
         get_location_choices(
@@ -270,7 +395,7 @@ def location_new():
         db.session.commit()
 
         flash(
-            "Storage location created.",
+            translate("storage_created"),
             "success",
         )
 
@@ -283,7 +408,9 @@ def location_new():
     return render_template(
         "inventory/location_form.html",
         form=form,
-        page_title="New storage location",
+        page_title=translate(
+            "storage_new_title"
+        ),
     )
 
 
@@ -309,6 +436,36 @@ def location_edit(
     form = StorageLocationForm(
         obj=location
     )
+
+    form.name.label.text = translate(
+        "field_name"
+    )
+
+    form.location_type.label.text = (
+        translate("field_type")
+    )
+
+    form.parent_id.label.text = (
+        translate("field_parent")
+    )
+
+    form.sort_order.label.text = (
+        translate("field_sort_order")
+    )
+
+    form.submit.label.text = translate(
+        "save"
+    )
+
+    form.location_type.choices = [
+        (
+            location_type,
+            get_location_type_label(
+                location_type
+            ),
+        )
+        for location_type in LOCATION_TYPES
+    ]
 
     form.parent_id.choices = (
         get_location_choices(
@@ -358,7 +515,7 @@ def location_edit(
         db.session.commit()
 
         flash(
-            "Storage location updated.",
+            translate("storage_updated"),
             "success",
         )
 
@@ -371,7 +528,9 @@ def location_edit(
     return render_template(
         "inventory/location_form.html",
         form=form,
-        page_title="Edit storage location",
+        page_title=translate(
+            "storage_edit_title"
+        ),
         location=location,
     )
 
@@ -396,8 +555,7 @@ def location_toggle(
 
         if active_children:
             flash(
-                "This location still has "
-                "active child locations.",
+                translate("storage_has_children"),
                 "error",
             )
 
@@ -410,7 +568,7 @@ def location_toggle(
         location.is_active = False
 
         flash(
-            "Storage location deactivated.",
+            translate("storage_deactivated"),
             "success",
         )
 
@@ -420,8 +578,7 @@ def location_toggle(
             and not location.parent.is_active
         ):
             flash(
-                "Reactivate the parent "
-                "location first.",
+                translate("storage_parent_inactive"),
                 "error",
             )
 
@@ -434,7 +591,7 @@ def location_toggle(
         location.is_active = True
 
         flash(
-            "Storage location reactivated.",
+            translate("storage_reactivated"),
             "success",
         )
 
@@ -444,4 +601,462 @@ def location_toggle(
         url_for(
             "inventory.locations"
         )
+    )
+
+def get_ingredient_choices():
+    ingredients = db.session.scalars(
+        select(Ingredient)
+        .where(
+            Ingredient.is_active.is_(True)
+        )
+        .order_by(
+            Ingredient.canonical_key
+        )
+    ).all()
+
+    choices = []
+
+    for ingredient in ingredients:
+        hu_name = next(
+            (
+                translation.name
+                for translation
+                in ingredient.translations
+                if translation.language_code
+                == "hu"
+            ),
+            ingredient.canonical_key,
+        )
+
+        choices.append(
+            (
+                ingredient.id,
+                hu_name,
+            )
+        )
+
+    return choices
+
+
+def get_product_choices(
+    household_id,
+):
+    products = db.session.scalars(
+        select(Product)
+        .where(
+            Product.household_id
+            == household_id,
+            Product.is_active.is_(
+                True
+            ),
+        )
+        .order_by(
+            Product.name
+        )
+    ).all()
+
+    choices = [
+        (
+            0,
+            translate(
+                "inventory_bulk_product"
+            ),
+        )
+    ]
+
+    for product in products:
+        label = product.name
+
+        if product.brand:
+            label = (
+                f"{product.brand} — "
+                f"{product.name}"
+            )
+
+        choices.append(
+            (
+                product.id,
+                label,
+            )
+        )
+
+    return choices
+
+
+def get_unit_choices(
+    ingredient_id=None,
+):
+    query = (
+        select(Unit)
+        .where(
+            Unit.is_active.is_(True)
+        )
+    )
+
+    if ingredient_id:
+        query = (
+            select(Unit)
+            .join(
+                IngredientUnit,
+                IngredientUnit.unit_id
+                == Unit.id,
+            )
+            .where(
+                IngredientUnit.ingredient_id
+                == ingredient_id,
+                Unit.is_active.is_(True),
+            )
+            .order_by(
+                IngredientUnit.sort_order,
+                Unit.sort_order,
+                Unit.code,
+            )
+        )
+    else:
+        query = query.order_by(
+            Unit.sort_order,
+            Unit.code,
+        )
+
+    units = db.session.scalars(
+        query
+    ).all()
+
+    choices = []
+
+    for unit in units:
+        name = next(
+            (
+                translation.name
+                for translation
+                in unit.translations
+                if translation.language_code
+                == current_user.preferred_language
+            ),
+            None,
+        )
+
+        if name is None:
+            name = next(
+                (
+                    translation.name
+                    for translation
+                    in unit.translations
+                    if translation.language_code
+                    == "hu"
+                ),
+                unit.code,
+            )
+
+        choices.append(
+            (
+                unit.id,
+                f"{name} ({unit.symbol})",
+            )
+        )
+
+    return choices
+
+
+def get_storage_location_choices(
+    household_id,
+):
+    locations = db.session.scalars(
+        select(StorageLocation)
+        .where(
+            StorageLocation.household_id
+            == household_id,
+            StorageLocation.is_active.is_(
+                True
+            ),
+        )
+    ).all()
+
+    tree = build_location_tree(
+        locations
+    )
+
+    choices = []
+
+    for location, depth in tree:
+        prefix = (
+            "    " * depth
+        )
+
+        marker = (
+            "↳ "
+            if depth > 0
+            else ""
+        )
+
+        choices.append(
+            (
+                location.id,
+                (
+                    f"{prefix}"
+                    f"{marker}"
+                    f"{location.name}"
+                ),
+            )
+        )
+
+    return choices
+
+
+@bp.route(
+    "/batches/new",
+    methods=[
+        "GET",
+        "POST",
+    ],
+)
+@login_required
+def batch_new():
+    membership = (
+        get_current_membership()
+    )
+
+    household_id = (
+        membership.household_id
+    )
+
+    form = InventoryBatchForm()
+
+    form.ingredient_id.label.text = (
+        translate(
+            "inventory_field_ingredient"
+        )
+    )
+
+    form.product_id.label.text = (
+        translate(
+            "inventory_field_product"
+        )
+    )
+
+    form.storage_location_id.label.text = (
+        translate(
+            "inventory_field_location"
+        )
+    )
+
+    form.quantity.label.text = (
+        translate(
+            "inventory_field_quantity"
+        )
+    )
+
+    form.unit_id.label.text = (
+        translate(
+            "inventory_field_unit"
+        )
+    )
+
+    form.purchase_date.label.text = (
+        translate(
+            "inventory_field_purchase_date"
+        )
+    )
+
+    form.expiration_date.label.text = (
+        translate(
+            "inventory_field_expiration_date"
+        )
+    )
+
+    form.note.label.text = translate(
+        "inventory_field_note"
+    )
+
+    form.submit.label.text = translate(
+        "inventory_add_submit"
+    )
+
+    form.ingredient_id.choices = (
+        get_ingredient_choices()
+    )
+
+    form.product_id.choices = (
+        get_product_choices(
+            household_id
+        )
+    )
+
+    form.storage_location_id.choices = (
+        get_storage_location_choices(
+            household_id
+        )
+    )
+
+    selected_ingredient_id = (
+        form.ingredient_id.data
+        if form.ingredient_id.data
+        else (
+            form.ingredient_id.choices[0][0]
+            if form.ingredient_id.choices
+            else None
+        )
+    )
+
+    form.unit_id.choices = (
+        get_unit_choices(
+            selected_ingredient_id
+        )
+    )
+
+    if form.validate_on_submit():
+        ingredient = db.session.get(
+            Ingredient,
+            form.ingredient_id.data,
+        )
+
+        if (
+            ingredient is None
+            or not ingredient.is_active
+        ):
+            abort(400)
+
+        product = None
+
+        if form.product_id.data:
+            product = db.session.get(
+                Product,
+                form.product_id.data,
+            )
+
+            if (
+                product is None
+                or product.household_id
+                != household_id
+                or not product.is_active
+            ):
+                abort(400)
+
+        location = db.session.get(
+            StorageLocation,
+            form.storage_location_id.data,
+        )
+
+        if (
+            location is None
+            or location.household_id
+            != household_id
+            or not location.is_active
+        ):
+            abort(400)
+
+        unit = db.session.get(
+            Unit,
+            form.unit_id.data,
+        )
+
+        if (
+            unit is None
+            or not unit.is_active
+        ):
+            abort(400)
+
+        quantity = form.quantity.data
+
+        batch = InventoryBatch(
+            household_id=household_id,
+            product=product,
+            ingredient=ingredient,
+            storage_location=location,
+            quantity=quantity,
+            unit=unit,
+            purchase_date=(
+                form.purchase_date.data
+            ),
+            expiration_date=(
+                form.expiration_date.data
+            ),
+            note=(
+                form.note.data.strip()
+                if form.note.data
+                else None
+            ),
+            is_active=True,
+        )
+
+        db.session.add(
+            batch
+        )
+
+        db.session.flush()
+
+        movement = InventoryMovement(
+            household_id=household_id,
+            inventory_batch=batch,
+            movement_type=(
+                "opening_balance"
+            ),
+            quantity_delta=quantity,
+            unit=unit,
+            quantity_before=0,
+            quantity_after=quantity,
+            created_by_user_id=(
+                current_user.id
+            ),
+            note=(
+                "Initial inventory entry"
+            ),
+        )
+
+        db.session.add(
+            movement
+        )
+
+        db.session.commit()
+
+        flash(
+            translate(
+                "inventory_added"
+            ),
+            "success",
+        )
+
+        return redirect(
+            url_for(
+                "inventory.inventory_list"
+            )
+        )
+
+    return render_template(
+        "inventory/batch_form.html",
+        form=form,
+    )
+
+
+@bp.get("/batches")
+@login_required
+def inventory_list():
+    household_id = (
+        get_current_household_id()
+    )
+
+    batches = db.session.scalars(
+        select(InventoryBatch)
+        .where(
+            InventoryBatch.household_id
+            == household_id,
+            InventoryBatch.is_active.is_(
+                True
+            ),
+            InventoryBatch.quantity > 0,
+        )
+        .order_by(
+            InventoryBatch.expiration_date
+            .asc()
+            .nullslast(),
+            InventoryBatch.created_at,
+        )
+    ).all()
+
+    return render_template(
+        "inventory/inventory_list.html",
+        batches=batches,
+        build_location_path=(
+            build_location_path
+        ),
     )

@@ -8,6 +8,9 @@ from .ingredient import (
 from .ingredient_substitution import (
     IngredientSubstitution,
 )
+from .ingredient_unit import (
+    IngredientUnit,
+)
 from .inventory_batch import (
     InventoryBatch,
 )
@@ -44,6 +47,7 @@ __all__ = [
     "IngredientCategoryTranslation",
     "IngredientTranslation",
     "IngredientSubstitution",
+    "IngredientUnit",
     "InventoryBatch",
     "InventoryMovement",
     "Product",

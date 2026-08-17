@@ -88,6 +88,13 @@ class Ingredient(db.Model):
         cascade="all, delete-orphan",
     )
 
+    allowed_units = db.relationship(
+        "IngredientUnit",
+        back_populates="ingredient",
+        cascade="all, delete-orphan",
+        order_by="IngredientUnit.sort_order",
+    )
+
     substitutions_from = db.relationship(
         "IngredientSubstitution",
         foreign_keys=(

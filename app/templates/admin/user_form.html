@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("admin_user_edit_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+    <h1>
+        {{ t("admin_user_edit_title") }}
+    </h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            {{ form.display_name.label }}
+            {{ form.display_name() }}
+        </div>
+
+        <div class="field">
+            {{ form.username.label }}
+            {{ form.username() }}
+        </div>
+
+        <div class="field">
+            {{ form.email.label }}
+            {{ form.email() }}
+        </div>
+
+        <div class="field">
+            {{ form.preferred_language.label }}
+            {{ form.preferred_language() }}
+        </div>
+
+        <div class="field">
+            {{ form.measurement_system.label }}
+            {{ form.measurement_system() }}
+        </div>
+
+        <div class="field">
+            {{ form.role.label }}
+            {{ form.role() }}
+        </div>
+
+        <div class="checkbox-field">
+            {{ form.is_active() }}
+            {{ form.is_active.label }}
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(
+                class="primary-button auto-width"
+            ) }}
+
+            <a href="{{ url_for('admin.users') }}">
+                {{ t("cancel") }}
+            </a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

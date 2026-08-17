@@ -48,7 +48,9 @@ def create_app():
     )
 
     from . import models  # noqa: F401
+    from .i18n import translate
 
+    from .admin import bp as admin_bp
     from .auth import bp as auth_bp
     from .inventory import bp as inventory_bp
     from .main import bp as main_bp
@@ -59,8 +61,19 @@ def create_app():
     )
 
     app.register_blueprint(
+        admin_bp,
+        url_prefix="/admin",
+    )
+
+    app.register_blueprint(
         main_bp,
     )
+
+    @app.context_processor
+    def inject_translation():
+        return {
+            "t": translate,
+        }
 
     app.register_blueprint(
         inventory_bp,
