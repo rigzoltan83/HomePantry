@@ -26,6 +26,13 @@ class Unit(db.Model):
         index=True,
     )
 
+    system = db.Column(
+        db.String(20),
+        nullable=False,
+        default="metric",
+        index=True,
+    )
+
     symbol = db.Column(
         db.String(20),
         nullable=False,

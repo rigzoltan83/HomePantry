@@ -22,6 +22,13 @@ class User(UserMixin, db.Model):
         index=True,
     )
 
+    username = db.Column(
+        db.String(80),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
     email = db.Column(
         db.String(255),
         unique=True,
@@ -43,6 +50,12 @@ class User(UserMixin, db.Model):
         db.String(5),
         nullable=False,
         default="hu",
+    )
+
+    measurement_system = db.Column(
+        db.String(20),
+        nullable=False,
+        default="metric",
     )
 
     is_active = db.Column(

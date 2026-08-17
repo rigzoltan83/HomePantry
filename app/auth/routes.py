@@ -10,7 +10,10 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from sqlalchemy import select
+from sqlalchemy import (
+    or_,
+    select,
+)
 from werkzeug.security import (
     check_password_hash,
     generate_password_hash,
@@ -52,16 +55,25 @@ def register():
             .lower()
         )
 
+        username = (
+            form.username.data
+            .strip()
+            .lower()
+        )
+
         existing_user = db.session.scalar(
             select(User).where(
-                User.email == email
+                or_(
+                    User.email == email,
+                    User.username == username,
+                )
             )
         )
 
         if existing_user is not None:
             flash(
                 "An account with this email "
-                "already exists.",
+                "or username already exists.",
                 "error",
             )
 
@@ -72,6 +84,7 @@ def register():
 
         user = User(
             email=email,
+            username=username,
             display_name=(
                 form.display_name.data
                 .strip()
@@ -150,15 +163,18 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        email = (
-            form.email.data
+        login_value = (
+            form.login.data
             .strip()
             .lower()
         )
 
         user = db.session.scalar(
             select(User).where(
-                User.email == email
+                or_(
+                    User.email == login_value,
+                    User.username == login_value,
+                )
             )
         )
 

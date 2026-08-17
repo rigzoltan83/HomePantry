@@ -26,6 +26,17 @@ class RegisterForm(FlaskForm):
         ],
     )
 
+    username = StringField(
+        "Username",
+        validators=[
+            DataRequired(),
+            Length(
+                min=3,
+                max=80,
+            ),
+        ],
+    )
+
     email = EmailField(
         "Email",
         validators=[
@@ -83,11 +94,11 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = EmailField(
-        "Email",
+    login = StringField(
+        "Email or username",
         validators=[
             DataRequired(),
-            Email(),
+            Length(max=255),
         ],
     )
 

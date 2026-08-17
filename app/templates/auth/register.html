@@ -27,6 +27,20 @@ Create account · HomePantry
         </div>
 
         <div class="field">
+            {{ form.username.label }}
+
+            {{ form.username(
+                autocomplete="username"
+            ) }}
+
+            {% for error in form.username.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="field">
             {{ form.email.label }}
             {{ form.email(
                 autocomplete="email"

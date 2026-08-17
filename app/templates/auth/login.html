@@ -16,13 +16,13 @@ Sign in · HomePantry
         {{ form.hidden_tag() }}
 
         <div class="field">
-            {{ form.email.label }}
+            {{ form.login.label }}
 
-            {{ form.email(
-                autocomplete="email"
+            {{ form.login(
+                autocomplete="username"
             ) }}
 
-            {% for error in form.email.errors %}
+            {% for error in form.login.errors %}
                 <div class="field-error">
                     {{ error }}
                 </div>
