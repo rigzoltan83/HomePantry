@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'hu' }}">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {% block title %}
+        HomePantry
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/app.css') }}"
+    >
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a
+                class="brand"
+                href="{{
+                    url_for('main.index')
+                    if current_user.is_authenticated
+                    else url_for('auth.login')
+                }}"
+            >
+                HomePantry
+            </a>
+
+            {% if current_user.is_authenticated %}
+                <div class="header-user">
+                    <span>
+                        {{ current_user.display_name }}
+                    </span>
+
+                    <form
+                        method="post"
+                        action="{{ url_for('auth.logout') }}"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            class="link-button"
+                            type="submit"
+                        >
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="page">
+        {% with messages =
+            get_flashed_messages(
+                with_categories=true
+            )
+        %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div
+                        class="flash flash-{{ category }}"
+                    >
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

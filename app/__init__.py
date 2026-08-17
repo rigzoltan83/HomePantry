@@ -1,7 +1,16 @@
-from flask import Flask, jsonify, url_for
+from flask import (
+    Flask,
+    jsonify,
+    url_for,
+)
 
 from .config import Config
-from .extensions import db, login_manager, migrate
+from .extensions import (
+    csrf,
+    db,
+    login_manager,
+    migrate,
+)
 from .middleware import PrefixMiddleware
 
 
@@ -26,18 +35,38 @@ def create_app():
 
     login_manager.init_app(app)
 
-    login_manager.login_view = "auth.login"
+    csrf.init_app(app)
 
-    # Import models so SQLAlchemy/Alembic can
-    # discover every mapped table.
+    login_manager.login_view = (
+        "auth.login"
+    )
+
+    login_manager.login_message = (
+        "Please sign in to continue."
+    )
+
     from . import models  # noqa: F401
+
+    from .auth import bp as auth_bp
+    from .main import bp as main_bp
+
+    app.register_blueprint(
+        auth_bp,
+        url_prefix="/auth",
+    )
+
+    app.register_blueprint(
+        main_bp,
+    )
 
     @login_manager.user_loader
     def load_user(user_id):
         from .models import User
 
         try:
-            numeric_user_id = int(user_id)
+            numeric_user_id = int(
+                user_id
+            )
         except (
             TypeError,
             ValueError,
@@ -65,6 +94,12 @@ def create_app():
             static_url=url_for(
                 "static",
                 filename="css/app.css",
+            ),
+            login_url=url_for(
+                "auth.login"
+            ),
+            home_url=url_for(
+                "main.index"
             ),
         )
 

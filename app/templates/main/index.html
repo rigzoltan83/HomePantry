@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="welcome">
+    <h1>
+        Welcome, {{ current_user.display_name }}
+    </h1>
+
+    {% if household %}
+        <p>
+            Household:
+            <strong>
+                {{ household.name }}
+            </strong>
+        </p>
+    {% else %}
+        <p>
+            No active household found.
+        </p>
+    {% endif %}
+</section>
+
+<section class="dashboard-grid">
+    <article class="dashboard-card">
+        <strong>Inventory</strong>
+        <span>0 items</span>
+    </article>
+
+    <article class="dashboard-card">
+        <strong>Expiring soon</strong>
+        <span>0 items</span>
+    </article>
+
+    <article class="dashboard-card">
+        <strong>Expired</strong>
+        <span>0 items</span>
+    </article>
+
+    <article class="dashboard-card">
+        <strong>Low stock</strong>
+        <span>0 ingredients</span>
+    </article>
+</section>
+
+{% endblock %}
