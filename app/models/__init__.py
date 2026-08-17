@@ -8,6 +8,13 @@ from .ingredient import (
 from .ingredient_substitution import (
     IngredientSubstitution,
 )
+from .product import (
+    Product,
+    ProductBarcode,
+)
+from .storage_location import (
+    StorageLocation,
+)
 from .ingredient_category import (
     IngredientCategory,
     IngredientCategoryTranslation,
@@ -28,6 +35,9 @@ __all__ = [
     "IngredientCategoryTranslation",
     "IngredientTranslation",
     "IngredientSubstitution",
+    "Product",
+    "ProductBarcode",
+    "StorageLocation",
     "Unit",
     "UnitTranslation",
     "User",
