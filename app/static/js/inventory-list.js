@@ -29,7 +29,27 @@ document.addEventListener(
                 "inventory-search-empty"
             );
 
-        let activeFilter = "all";
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const requestedFilter =
+            params.get("filter");
+
+        const allowedFilters = new Set([
+            "all",
+            "low",
+            "expiring",
+            "expired",
+        ]);
+
+        let activeFilter =
+            allowedFilters.has(
+                requestedFilter
+            )
+                ? requestedFilter
+                : "all";
 
         const normalizeText = value => {
             return String(value || "")
@@ -115,6 +135,18 @@ document.addEventListener(
             "input",
             applyFilters
         );
+
+        filterButtons.forEach(
+            button => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.filter
+                    === activeFilter
+                );
+            }
+        );
+
+        applyFilters();
 
         filterButtons.forEach(
             button => {

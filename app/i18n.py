@@ -3,6 +3,73 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+        "dashboard_title": "Áttekintés",
+        "dashboard_welcome": "Szia",
+        "dashboard_household": "Háztartás",
+
+        "dashboard_inventory": "Készlet",
+        "dashboard_batches": "készlettétel",
+        "dashboard_expiring": "Hamarosan lejár",
+        "dashboard_expired": "Lejárt",
+        "dashboard_low_stock": "Minimum alatt",
+        "dashboard_ingredients": "alapanyag",
+        "dashboard_next_three_days": (
+            "A következő 3 napban"
+        ),
+        "dashboard_needs_attention": (
+            "Figyelmet igényel"
+        ),
+
+        "dashboard_attention": (
+            "Lejáratok"
+        ),
+        "dashboard_attention_help": (
+            "Lejárt és hamarosan lejáró készlettételek."
+        ),
+        "dashboard_view_inventory": (
+            "Teljes készlet"
+        ),
+        "dashboard_no_expiration_alerts": (
+            "Nincs lejárt vagy hamarosan lejáró tétel."
+        ),
+
+        "dashboard_low_stock_help": (
+            "A beállított minimumkészlet alá került alapanyagok."
+        ),
+        "dashboard_current": "Jelenleg",
+        "dashboard_stock_ok": (
+            "Minden beállított minimumkészlet rendben van."
+        ),
+
+        "dashboard_recent_movements": (
+            "Legutóbbi készletmozgások"
+        ),
+        "dashboard_recent_movements_help": (
+            "A legfrissebb készletváltozások."
+        ),
+
+        "dashboard_quick_actions": (
+            "Gyors műveletek"
+        ),
+        "dashboard_quick_actions_help": (
+            "A leggyakrabban használt funkciók."
+        ),
+        "dashboard_quick_inventory_help": (
+            "Vonalkód vagy kézi bevitel"
+        ),
+        "dashboard_quick_products_help": (
+            "Terméktörzs és vonalkódok"
+        ),
+        "dashboard_quick_locations_help": (
+            "Tárhelyek karbantartása"
+        ),
+        "dashboard_quick_movements_help": (
+            "Készletváltozások előzményei"
+        ),
+
+        "dashboard_no_household": (
+            "Nincs aktív háztartás a felhasználóhoz rendelve."
+        ),
         "unit_dimension_mass": "Tömeg",
         "unit_dimension_volume": "Térfogat",
         "unit_dimension_count": "Darabszám",
@@ -440,6 +507,71 @@ TRANSLATIONS = {
     },
 
     "en": {
+        "dashboard_title": "Overview",
+        "dashboard_welcome": "Hello",
+        "dashboard_household": "Household",
+
+        "dashboard_inventory": "Inventory",
+        "dashboard_batches": "batches",
+        "dashboard_expiring": "Expiring soon",
+        "dashboard_expired": "Expired",
+        "dashboard_low_stock": "Below minimum",
+        "dashboard_ingredients": "ingredients",
+        "dashboard_next_three_days": (
+            "Within the next 3 days"
+        ),
+        "dashboard_needs_attention": (
+            "Needs attention"
+        ),
+
+        "dashboard_attention": "Expiration",
+        "dashboard_attention_help": (
+            "Expired and soon-to-expire inventory batches."
+        ),
+        "dashboard_view_inventory": (
+            "View inventory"
+        ),
+        "dashboard_no_expiration_alerts": (
+            "No expired or soon-to-expire items."
+        ),
+
+        "dashboard_low_stock_help": (
+            "Ingredients below their configured minimum stock."
+        ),
+        "dashboard_current": "Current",
+        "dashboard_stock_ok": (
+            "All configured minimum stock levels are healthy."
+        ),
+
+        "dashboard_recent_movements": (
+            "Recent inventory movements"
+        ),
+        "dashboard_recent_movements_help": (
+            "The latest inventory changes."
+        ),
+
+        "dashboard_quick_actions": (
+            "Quick actions"
+        ),
+        "dashboard_quick_actions_help": (
+            "Frequently used HomePantry functions."
+        ),
+        "dashboard_quick_inventory_help": (
+            "Barcode or manual entry"
+        ),
+        "dashboard_quick_products_help": (
+            "Products and barcodes"
+        ),
+        "dashboard_quick_locations_help": (
+            "Manage storage locations"
+        ),
+        "dashboard_quick_movements_help": (
+            "Inventory movement history"
+        ),
+
+        "dashboard_no_household": (
+            "No active household is assigned to this user."
+        ),
         "unit_dimension_mass": "Mass",
         "unit_dimension_volume": "Volume",
         "unit_dimension_count": "Count",

@@ -1,50 +1,563 @@
 {% extends "base.html" %}
 
 {% block title %}
-Home · HomePantry
+{{ t("dashboard_title") }} · HomePantry
 {% endblock %}
 
 {% block content %}
 
-<section class="welcome">
-    <h1>
-        Welcome, {{ current_user.display_name }}
-    </h1>
+<section class="dashboard-hero">
 
-    {% if household %}
-        <p>
-            Household:
-            <strong>
-                {{ household.name }}
-            </strong>
-        </p>
-    {% else %}
-        <p>
-            No active household found.
-        </p>
-    {% endif %}
+    <div>
+        <div class="dashboard-eyebrow">
+            HomePantry
+        </div>
+
+        <h1>
+            {{ t("dashboard_welcome") }},
+            {{ current_user.display_name }}
+        </h1>
+
+        {% if household %}
+            <p>
+                {{ t("dashboard_household") }}:
+                <strong>
+                    {{ household.name }}
+                </strong>
+            </p>
+        {% endif %}
+    </div>
+
+    <a
+        class="primary-link dashboard-primary-action"
+        href="{{
+            url_for(
+                'inventory.batch_new'
+            )
+        }}"
+    >
+        + {{ t("inventory_add") }}
+    </a>
+
 </section>
 
-<section class="dashboard-grid">
-    <article class="dashboard-card">
-        <strong>Inventory</strong>
-        <span>0 items</span>
-    </article>
 
-    <article class="dashboard-card">
-        <strong>Expiring soon</strong>
-        <span>0 items</span>
-    </article>
+{% if household %}
 
-    <article class="dashboard-card">
-        <strong>Expired</strong>
-        <span>0 items</span>
-    </article>
+<section class="dashboard-stats">
 
-    <article class="dashboard-card">
-        <strong>Low stock</strong>
-        <span>0 ingredients</span>
-    </article>
+    <a
+        class="dashboard-stat-card"
+        href="{{
+            url_for(
+                'inventory.inventory_list'
+            )
+        }}"
+    >
+        <span class="dashboard-stat-label">
+            {{ t("dashboard_inventory") }}
+        </span>
+
+        <strong class="dashboard-stat-value">
+            {{ inventory_ingredient_count }}
+        </strong>
+
+        <span class="dashboard-stat-detail">
+            {{ inventory_batch_count }}
+            {{ t("dashboard_batches") }}
+        </span>
+    </a>
+
+
+    <a
+        class="
+            dashboard-stat-card
+            {% if expiring_count %}
+                dashboard-stat-warning
+            {% endif %}
+        "
+        href="{{
+            url_for(
+                'inventory.inventory_list',
+                filter='expiring'
+            )
+        }}"
+    >
+        <span class="dashboard-stat-label">
+            {{ t("dashboard_expiring") }}
+        </span>
+
+        <strong class="dashboard-stat-value">
+            {{ expiring_count }}
+        </strong>
+
+        <span class="dashboard-stat-detail">
+            {{ t("dashboard_next_three_days") }}
+        </span>
+    </a>
+
+
+    <a
+        class="
+            dashboard-stat-card
+            {% if expired_count %}
+                dashboard-stat-danger
+            {% endif %}
+        "
+        href="{{
+            url_for(
+                'inventory.inventory_list',
+                filter='expired'
+            )
+        }}"
+    >
+        <span class="dashboard-stat-label">
+            {{ t("dashboard_expired") }}
+        </span>
+
+        <strong class="dashboard-stat-value">
+            {{ expired_count }}
+        </strong>
+
+        <span class="dashboard-stat-detail">
+            {{ t("dashboard_needs_attention") }}
+        </span>
+    </a>
+
+
+    <a
+        class="
+            dashboard-stat-card
+            {% if low_stock_count %}
+                dashboard-stat-warning
+            {% endif %}
+        "
+        href="{{
+            url_for(
+                'inventory.inventory_list',
+                filter='low'
+            )
+        }}"
+    >
+        <span class="dashboard-stat-label">
+            {{ t("dashboard_low_stock") }}
+        </span>
+
+        <strong class="dashboard-stat-value">
+            {{ low_stock_count }}
+        </strong>
+
+        <span class="dashboard-stat-detail">
+            {{ t("dashboard_ingredients") }}
+        </span>
+    </a>
+
 </section>
+
+
+<section class="dashboard-main-grid">
+
+    <article class="dashboard-panel">
+
+        <div class="dashboard-panel-heading">
+            <div>
+                <h2>
+                    {{ t("dashboard_attention") }}
+                </h2>
+
+                <p class="muted">
+                    {{ t("dashboard_attention_help") }}
+                </p>
+            </div>
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.inventory_list'
+                    )
+                }}"
+            >
+                {{ t("dashboard_view_inventory") }}
+            </a>
+        </div>
+
+
+        {% if expiring_items %}
+
+            <div class="dashboard-alert-list">
+
+                {% for item in expiring_items %}
+
+                    <a
+                        href="{{
+                            url_for(
+                                'inventory.inventory_list',
+                                filter=(
+                                    'expired'
+                                    if item.is_expired
+                                    else 'expiring'
+                                )
+                            )
+                        }}"
+                        class="
+                            dashboard-alert-item
+                            {% if item.is_expired %}
+                                dashboard-alert-danger
+                            {% else %}
+                                dashboard-alert-warning
+                            {% endif %}
+                        "
+                    >
+                        <div>
+                            <strong>
+                                {{ item.ingredient_name }}
+                            </strong>
+
+                            {% if item.product_name %}
+                                <div class="muted">
+                                    {{ item.product_name }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="dashboard-alert-meta">
+                            <strong>
+                                {{ item.quantity }}
+                                {{ item.unit }}
+                            </strong>
+
+                            <span>
+                                {{ item.expiration_date }}
+                            </span>
+
+                            {% if item.is_expired %}
+                                <span
+                                    class="inventory-badge inventory-badge-danger"
+                                >
+                                    {{ t("inventory_status_expired") }}
+                                </span>
+                            {% else %}
+                                <span
+                                    class="inventory-badge inventory-badge-warning"
+                                >
+                                    {{ t("inventory_status_expiring") }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty-state">
+                ✓ {{ t("dashboard_no_expiration_alerts") }}
+            </div>
+
+        {% endif %}
+
+    </article>
+
+
+    <article class="dashboard-panel">
+
+        <div class="dashboard-panel-heading">
+            <div>
+                <h2>
+                    {{ t("dashboard_low_stock") }}
+                </h2>
+
+                <p class="muted">
+                    {{ t("dashboard_low_stock_help") }}
+                </p>
+            </div>
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.stock_rules'
+                    )
+                }}"
+            >
+                {{ t("nav_stock_rules") }}
+            </a>
+        </div>
+
+
+        {% if low_stock_items %}
+
+            <div class="dashboard-stock-list">
+
+                {% for item in low_stock_items %}
+
+                    <a
+                        class="dashboard-stock-item dashboard-stock-link"
+                        href="{{
+                            url_for(
+                                'inventory.inventory_list',
+                                filter='low'
+                            )
+                        }}"
+                    >
+
+                        <strong>
+                            {{ item.ingredient_name }}
+                        </strong>
+
+                        <div class="dashboard-stock-values">
+                            <span>
+                                {{ t("dashboard_current") }}:
+                                <strong>
+                                    {{ item.current_quantity }}
+                                    {{ item.unit }}
+                                </strong>
+                            </span>
+
+                            <span class="muted">
+                                {{ t("inventory_minimum_stock") }}:
+                                {{ item.minimum_quantity }}
+                                {{ item.unit }}
+                            </span>
+                        </div>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty-state">
+                ✓ {{ t("dashboard_stock_ok") }}
+            </div>
+
+        {% endif %}
+
+    </article>
+
+</section>
+
+
+<section class="dashboard-bottom-grid">
+
+    <article class="dashboard-panel">
+
+        <div class="dashboard-panel-heading">
+            <div>
+                <h2>
+                    {{ t("dashboard_recent_movements") }}
+                </h2>
+
+                <p class="muted">
+                    {{ t("dashboard_recent_movements_help") }}
+                </p>
+            </div>
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.movements'
+                    )
+                }}"
+            >
+                {{ t("nav_movements") }}
+            </a>
+        </div>
+
+
+        {% if recent_movements %}
+
+            <div class="dashboard-movement-list">
+
+                {% for movement in recent_movements %}
+
+                    {% set batch = movement.inventory_batch %}
+
+                    <div class="dashboard-movement-item">
+
+                        <div class="dashboard-movement-main">
+
+                            <span
+                                class="
+                                    movement-type
+                                    movement-type-{{ movement.movement_type }}
+                                "
+                            >
+                                {{
+                                    t(
+                                        "movement_type_"
+                                        ~ movement.movement_type
+                                    )
+                                }}
+                            </span>
+
+                            <div>
+                                <strong>
+                                    {{
+                                        get_ingredient_name(
+                                            batch.ingredient
+                                        )
+                                    }}
+                                </strong>
+
+                                {% if batch.product %}
+                                    <div class="muted">
+                                        {{ batch.product.name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <div class="dashboard-movement-values">
+
+                            <strong>
+                                {% if movement.quantity_delta > 0 %}
+                                    +
+                                {% endif %}
+
+                                {{
+                                    format_quantity(
+                                        movement.quantity_delta
+                                    )
+                                }}
+
+                                {{ movement.unit.symbol }}
+                            </strong>
+
+                            <span class="muted">
+                                {{
+                                    movement.created_at.strftime(
+                                        "%Y-%m-%d %H:%M"
+                                    )
+                                }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty-state">
+                {{ t("movements_empty") }}
+            </div>
+
+        {% endif %}
+
+    </article>
+
+
+    <article class="dashboard-panel dashboard-quick-panel">
+
+        <div class="dashboard-panel-heading">
+            <div>
+                <h2>
+                    {{ t("dashboard_quick_actions") }}
+                </h2>
+
+                <p class="muted">
+                    {{ t("dashboard_quick_actions_help") }}
+                </p>
+            </div>
+        </div>
+
+
+        <div class="dashboard-quick-grid">
+
+            <a
+                class="dashboard-quick-action dashboard-quick-primary"
+                href="{{
+                    url_for(
+                        'inventory.batch_new'
+                    )
+                }}"
+            >
+                <strong>
+                    + {{ t("inventory_add") }}
+                </strong>
+
+                <span>
+                    {{ t("dashboard_quick_inventory_help") }}
+                </span>
+            </a>
+
+
+            <a
+                class="dashboard-quick-action"
+                href="{{
+                    url_for(
+                        'inventory.products'
+                    )
+                }}"
+            >
+                <strong>
+                    {{ t("nav_products") }}
+                </strong>
+
+                <span>
+                    {{ t("dashboard_quick_products_help") }}
+                </span>
+            </a>
+
+
+            <a
+                class="dashboard-quick-action"
+                href="{{
+                    url_for(
+                        'inventory.locations'
+                    )
+                }}"
+            >
+                <strong>
+                    {{ t("inventory_col_location") }}
+                </strong>
+
+                <span>
+                    {{ t("dashboard_quick_locations_help") }}
+                </span>
+            </a>
+
+
+            <a
+                class="dashboard-quick-action"
+                href="{{
+                    url_for(
+                        'inventory.movements'
+                    )
+                }}"
+            >
+                <strong>
+                    {{ t("nav_movements") }}
+                </strong>
+
+                <span>
+                    {{ t("dashboard_quick_movements_help") }}
+                </span>
+            </a>
+
+        </div>
+
+    </article>
+
+</section>
+
+
+{% else %}
+
+<section class="panel">
+    <p>
+        {{ t("dashboard_no_household") }}
+    </p>
+</section>
+
+{% endif %}
 
 {% endblock %}
