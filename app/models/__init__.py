@@ -18,6 +18,9 @@ from .product import (
 from .storage_location import (
     StorageLocation,
 )
+from .stock_rule import (
+    StockRule,
+)
 from .ingredient_category import (
     IngredientCategory,
     IngredientCategoryTranslation,
@@ -42,6 +45,7 @@ __all__ = [
     "Product",
     "ProductBarcode",
     "StorageLocation",
+    "StockRule",
     "Unit",
     "UnitTranslation",
     "User",
