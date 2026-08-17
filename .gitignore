@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+venv/
+.venv/
+
+# Environment / secrets
+.env
+.env.local
+
+# Flask
+instance/
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# User uploads
+uploads/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
