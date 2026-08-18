@@ -63,18 +63,20 @@
 
             <div class="field">
                 {{ form.quantity.label }}
-                {{ form.quantity() }}
+
+                <div class="quantity-with-unit">
+                    {{ form.quantity() }}
+
+                    <span class="quantity-unit">
+                        {{ batch.unit.symbol }}
+                    </span>
+                </div>
 
                 {% for error in form.quantity.errors %}
                     <div class="field-error">
                         {{ error }}
                     </div>
                 {% endfor %}
-            </div>
-
-            <div class="field">
-                {{ form.unit_id.label }}
-                {{ form.unit_id() }}
             </div>
 
         {% endif %}

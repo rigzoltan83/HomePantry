@@ -1410,3 +1410,34 @@ a {
         text-align: center;
     }
 }
+
+.quantity-with-unit {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-with-unit input {
+    width: 100%;
+}
+
+.quantity-unit {
+    min-width: 48px;
+    min-height: 44px;
+
+    padding: 9px 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #bbc3cc;
+    border-radius: 8px;
+
+    background: #eef1f4;
+
+    font-weight: 700;
+}

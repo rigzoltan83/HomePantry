@@ -3,6 +3,30 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+        "product_field_images": "Termékképek",
+        "product_images_help": (
+            "Több JPG, PNG vagy WEBP kép is "
+            "feltölthető. A képek automatikusan "
+            "átméretezésre és tömörítésre kerülnek."
+        ),
+        "product_images_existing": (
+            "Feltöltött képek"
+        ),
+        "product_image_cover": "Borítókép",
+        "product_image_set_cover": (
+            "Beállítás borítóképként"
+        ),
+        "product_image_delete": "Kép törlése",
+        "product_image_invalid": (
+            "A feltöltött kép nem érvényes "
+            "vagy nem támogatott formátumú."
+        ),
+        "product_image_cover_updated": (
+            "A borítókép módosítva."
+        ),
+        "product_image_deleted": (
+            "A kép törölve."
+        ),
         "search": "Keresés",
         "clear": "Törlés",
         "admin_dashboard_title": (
@@ -520,6 +544,30 @@ TRANSLATIONS = {
     },
 
     "en": {
+        "product_field_images": "Product images",
+        "product_images_help": (
+            "Multiple JPG, PNG or WEBP images may "
+            "be uploaded. Images are automatically "
+            "resized and compressed."
+        ),
+        "product_images_existing": (
+            "Uploaded images"
+        ),
+        "product_image_cover": "Cover image",
+        "product_image_set_cover": (
+            "Set as cover image"
+        ),
+        "product_image_delete": "Delete image",
+        "product_image_invalid": (
+            "The uploaded image is invalid "
+            "or uses an unsupported format."
+        ),
+        "product_image_cover_updated": (
+            "Cover image updated."
+        ),
+        "product_image_deleted": (
+            "Image deleted."
+        ),
         "search": "Search",
         "clear": "Clear",
         "admin_dashboard_title": (

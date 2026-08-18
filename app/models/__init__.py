@@ -20,6 +20,7 @@ from .inventory_movement import (
 from .product import (
     Product,
     ProductBarcode,
+    ProductImage,
 )
 from .storage_location import (
     StorageLocation,
@@ -52,6 +53,7 @@ __all__ = [
     "InventoryMovement",
     "Product",
     "ProductBarcode",
+    "ProductImage",
     "StorageLocation",
     "StockRule",
     "Unit",

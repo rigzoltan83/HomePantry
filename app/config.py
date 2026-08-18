@@ -23,3 +23,19 @@ class Config:
         "DEFAULT_TIMEZONE",
         "Europe/Budapest",
     )
+
+    PRODUCT_IMAGE_UPLOAD_DIR = os.getenv(
+        "PRODUCT_IMAGE_UPLOAD_DIR",
+        (
+            "/opt/homepantry/"
+            "var/uploads/products"
+        ),
+    )
+
+    PRODUCT_IMAGE_MAX_SIZE = 1600
+
+    PRODUCT_IMAGE_WEBP_QUALITY = 82
+
+    MAX_CONTENT_LENGTH = (
+        50 * 1024 * 1024
+    )

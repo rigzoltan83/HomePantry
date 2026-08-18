@@ -1,3 +1,4 @@
+import os
 from datetime import (
     date,
     timedelta,
@@ -5,11 +6,13 @@ from datetime import (
 from decimal import Decimal
 from flask import (
     abort,
+    current_app,
     flash,
     jsonify,
     redirect,
     render_template,
     request,
+    send_from_directory,
     url_for,
 )
 from flask_login import (
@@ -32,6 +35,7 @@ from app.models import (
     InventoryMovement,
     Product,
     ProductBarcode,
+    ProductImage,
     StorageLocation,
     StockRule,
     Unit,
@@ -47,6 +51,11 @@ from .forms import (
     ProductForm,
     StockRuleForm,
     StorageLocationForm,
+)
+
+from .product_images import (
+    delete_product_image_file,
+    save_product_image,
 )
 
 EXPIRING_SOON_DAYS = 3
@@ -911,6 +920,12 @@ def configure_product_form(
         )
     )
 
+    form.images.label.text = (
+        translate(
+            "product_field_images"
+        )
+    )
+
     form.submit.label.text = translate(
         "save"
     )
@@ -1123,6 +1138,7 @@ def product_new():
                     page_title=translate(
                         "product_new_title"
                     ),
+                    product=None,
                 )
 
         product = Product(
@@ -1146,6 +1162,55 @@ def product_new():
 
         db.session.add(product)
         db.session.flush()
+
+        saved_images = []
+
+        try:
+            for image_file in (
+                form.images.data
+                or []
+            ):
+                if (
+                    image_file
+                    and image_file.filename
+                ):
+                    saved_image = (
+                        save_product_image(
+                            product,
+                            image_file,
+                        )
+                    )
+
+                    if saved_image is not None:
+                        saved_images.append(
+                            saved_image
+                        )
+
+        except ValueError:
+            for saved_image in (
+                saved_images
+            ):
+                delete_product_image_file(
+                    saved_image
+                )
+
+            db.session.rollback()
+
+            flash(
+                translate(
+                    "product_image_invalid"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "inventory/product_form.html",
+                form=form,
+                page_title=translate(
+                    "product_new_title"
+                ),
+                product=None,
+            )
 
         if barcode_value:
             barcode = ProductBarcode(
@@ -1182,6 +1247,7 @@ def product_new():
         page_title=translate(
             "product_new_title"
         ),
+        product=None,
     )
 
 
@@ -1308,6 +1374,7 @@ def product_edit(
                     page_title=translate(
                         "product_edit_title"
                     ),
+                    product=product,
                 )
 
         product.ingredient = ingredient
@@ -1364,6 +1431,55 @@ def product_edit(
                 )
             )
 
+        saved_images = []
+
+        try:
+            for image_file in (
+                form.images.data
+                or []
+            ):
+                if (
+                    image_file
+                    and image_file.filename
+                ):
+                    saved_image = (
+                        save_product_image(
+                            product,
+                            image_file,
+                        )
+                    )
+
+                    if saved_image is not None:
+                        saved_images.append(
+                            saved_image
+                        )
+
+        except ValueError:
+            for saved_image in (
+                saved_images
+            ):
+                delete_product_image_file(
+                    saved_image
+                )
+
+            db.session.rollback()
+
+            flash(
+                translate(
+                    "product_image_invalid"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "inventory/product_form.html",
+                form=form,
+                page_title=translate(
+                    "product_edit_title"
+                ),
+                product=product,
+            )
+
         db.session.commit()
 
         flash(
@@ -1385,6 +1501,184 @@ def product_edit(
         page_title=translate(
             "product_edit_title"
         ),
+        product=product,
+    )
+
+
+@bp.get(
+    "/product-images/<uuid:public_id>"
+)
+@login_required
+def product_image(
+    public_id,
+):
+    household_id = (
+        get_current_household_id()
+    )
+
+    image = db.session.scalar(
+        select(ProductImage)
+        .join(
+            Product,
+            Product.id
+            == ProductImage.product_id,
+        )
+        .where(
+            ProductImage.public_id
+            == public_id,
+            Product.household_id
+            == household_id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    product_directory = (
+        current_app.config[
+            "PRODUCT_IMAGE_UPLOAD_DIR"
+        ]
+    )
+
+    directory = os.path.join(
+        product_directory,
+        str(image.product.public_id),
+    )
+
+    return send_from_directory(
+        directory,
+        image.stored_filename,
+        mimetype="image/webp",
+        max_age=86400,
+    )
+
+
+@bp.post(
+    "/products/<uuid:product_public_id>/images/"
+    "<uuid:image_public_id>/cover"
+)
+@login_required
+def product_image_cover(
+    product_public_id,
+    image_public_id,
+):
+    product = get_product_or_404(
+        product_public_id
+    )
+
+    image = db.session.scalar(
+        select(ProductImage)
+        .where(
+            ProductImage.public_id
+            == image_public_id,
+            ProductImage.product_id
+            == product.id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    for product_image in (
+        product.images
+    ):
+        product_image.is_cover = (
+            product_image.id
+            == image.id
+        )
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "product_image_cover_updated"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "inventory.product_edit",
+            public_id=(
+                product.public_id
+            ),
+        )
+    )
+
+
+@bp.post(
+    "/products/<uuid:product_public_id>/images/"
+    "<uuid:image_public_id>/delete"
+)
+@login_required
+def product_image_delete(
+    product_public_id,
+    image_public_id,
+):
+    product = get_product_or_404(
+        product_public_id
+    )
+
+    image = db.session.scalar(
+        select(ProductImage)
+        .where(
+            ProductImage.public_id
+            == image_public_id,
+            ProductImage.product_id
+            == product.id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    was_cover = image.is_cover
+
+    delete_product_image_file(
+        image
+    )
+
+    db.session.delete(
+        image
+    )
+
+    db.session.flush()
+
+    if was_cover:
+        next_image = db.session.scalar(
+            select(ProductImage)
+            .where(
+                ProductImage.product_id
+                == product.id,
+                ProductImage.id
+                != image.id,
+            )
+            .order_by(
+                ProductImage.sort_order,
+                ProductImage.id,
+            )
+            .limit(1)
+        )
+
+        if next_image is not None:
+            next_image.is_cover = True
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "product_image_deleted"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "inventory.product_edit",
+            public_id=(
+                product.public_id
+            ),
+        )
     )
 
 
@@ -2008,12 +2302,6 @@ def batch_quantity_action(
         )
     )
 
-    form.unit_id.label.text = (
-        translate(
-            "inventory_field_unit"
-        )
-    )
-
     form.note.label.text = (
         translate(
             "inventory_field_note"
@@ -2030,36 +2318,10 @@ def batch_quantity_action(
         )
     )
 
-    form.unit_id.choices = (
-        get_batch_unit_choices(
-            batch
-        )
-    )
-
-    if not form.is_submitted():
-        form.unit_id.data = (
-            batch.unit_id
-        )
-
     if form.validate_on_submit():
-        input_unit = db.session.get(
-            Unit,
-            form.unit_id.data,
+        quantity_in_batch_unit = Decimal(
+            form.quantity.data
         )
-
-        if input_unit is None:
-            abort(400)
-
-        try:
-            quantity_in_batch_unit = (
-                convert_quantity(
-                    form.quantity.data,
-                    input_unit,
-                    batch.unit,
-                )
-            )
-        except ValueError:
-            abort(400)
 
         if (
             quantity_in_batch_unit
@@ -2186,12 +2448,6 @@ def batch_adjust(
         )
     )
 
-    form.unit_id.label.text = (
-        translate(
-            "inventory_field_unit"
-        )
-    )
-
     form.note.label.text = (
         translate(
             "inventory_field_note"
@@ -2204,40 +2460,15 @@ def batch_adjust(
         )
     )
 
-    form.unit_id.choices = (
-        get_batch_unit_choices(
-            batch
-        )
-    )
-
     if not form.is_submitted():
         form.quantity.data = (
             batch.quantity
         )
 
-        form.unit_id.data = (
-            batch.unit_id
-        )
-
     if form.validate_on_submit():
-        input_unit = db.session.get(
-            Unit,
-            form.unit_id.data,
+        new_quantity = Decimal(
+            form.quantity.data
         )
-
-        if input_unit is None:
-            abort(400)
-
-        try:
-            new_quantity = (
-                convert_quantity(
-                    form.quantity.data,
-                    input_unit,
-                    batch.unit,
-                )
-            )
-        except ValueError:
-            abort(400)
 
         quantity_before = Decimal(
             batch.quantity

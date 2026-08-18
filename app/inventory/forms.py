@@ -1,8 +1,10 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed
 from wtforms import (
     DateField,
     DecimalField,
     IntegerField,
+    MultipleFileField,
     SelectField,
     StringField,
     SubmitField,
@@ -207,6 +209,24 @@ class ProductForm(FlaskForm):
         ],
     )
 
+    images = MultipleFileField(
+        validators=[
+            Optional(),
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                (
+                    "JPG, PNG vagy WEBP "
+                    "kép tölthető fel."
+                ),
+            ),
+        ],
+    )
+
     submit = SubmitField()
 
 class BatchQuantityActionForm(FlaskForm):
@@ -217,14 +237,6 @@ class BatchQuantityActionForm(FlaskForm):
             NumberRange(
                 min=0.000001,
             ),
-        ],
-    )
-
-    unit_id = SelectField(
-        choices=[],
-        coerce=int,
-        validators=[
-            DataRequired(),
         ],
     )
 
@@ -246,14 +258,6 @@ class BatchAdjustmentForm(FlaskForm):
             NumberRange(
                 min=0,
             ),
-        ],
-    )
-
-    unit_id = SelectField(
-        choices=[],
-        coerce=int,
-        validators=[
-            DataRequired(),
         ],
     )
 
