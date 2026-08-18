@@ -760,6 +760,13 @@ def user_new():
     )
 
     if form.validate_on_submit():
+        if (
+            admin_membership.role
+            == "admin"
+            and form.role.data
+            == "owner"
+        ):
+            abort(403)
         username = (
             form.username.data
             .strip()
@@ -893,6 +900,13 @@ def user_edit(
     form.role.label.text = translate(
         "admin_role"
     )
+
+    if admin_membership.role == "admin":
+        form.role.choices = [
+            choice
+            for choice in form.role.choices
+            if choice[0] != "owner"
+        ]
 
     form.is_active.label.text = (
         translate(
