@@ -4,6 +4,7 @@ from wtforms import (
     DateField,
     DecimalField,
     IntegerField,
+    FileField,
     MultipleFileField,
     SelectField,
     StringField,
@@ -210,6 +211,24 @@ class ProductForm(FlaskForm):
     )
 
     images = MultipleFileField(
+        validators=[
+            Optional(),
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                (
+                    "JPG, PNG vagy WEBP "
+                    "kép tölthető fel."
+                ),
+            ),
+        ],
+    )
+
+    camera_image = FileField(
         validators=[
             Optional(),
             FileAllowed(

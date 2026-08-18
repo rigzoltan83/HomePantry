@@ -3,6 +3,18 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+        "product_images_pending": (
+            "Feltöltendő képek"
+        ),
+        "product_images_choose_files": (
+            "Fájl(ok) kiválasztása"
+        ),
+        "product_images_take_photo": (
+            "Fotó készítése"
+        ),
+        "product_field_camera": (
+            "Fotó készítése"
+        ),
         "product_field_images": "Termékképek",
         "product_images_help": (
             "Több JPG, PNG vagy WEBP kép is "
@@ -544,6 +556,18 @@ TRANSLATIONS = {
     },
 
     "en": {
+        "product_images_pending": (
+            "Images to upload"
+        ),
+        "product_images_choose_files": (
+            "Choose file(s)"
+        ),
+        "product_images_take_photo": (
+            "Take a photo"
+        ),
+        "product_field_camera": (
+            "Take a photo"
+        ),
         "product_field_images": "Product images",
         "product_images_help": (
             "Multiple JPG, PNG or WEBP images may "

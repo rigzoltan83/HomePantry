@@ -37,6 +37,7 @@
         <table class="inventory-table">
             <thead>
                 <tr>
+                    <th class="product-image-column"></th>
                     <th>{{ t("product_field_name") }}</th>
                     <th>{{ t("product_field_ingredient") }}</th>
                     <th>{{ t("product_field_brand") }}</th>
@@ -64,6 +65,32 @@
                             {% endfor %}
                         "
                     >
+                        <td class="product-list-image-cell">
+
+                            {% if product.images %}
+
+                                <img
+                                    class="product-list-thumbnail"
+                                    src="{{
+                                        url_for(
+                                            'inventory.product_image',
+                                            public_id=product.images[0].public_id
+                                        )
+                                    }}"
+                                    alt="{{ product.name }}"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div class="product-list-thumbnail product-list-thumbnail-empty">
+                                    —
+                                </div>
+
+                            {% endif %}
+
+                        </td>
+
                         <td>
                             <strong>
                                 {{ product.name }}

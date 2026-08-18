@@ -926,6 +926,12 @@ def configure_product_form(
         )
     )
 
+    form.camera_image.label.text = (
+        translate(
+            "product_field_camera"
+        )
+    )
+
     form.submit.label.text = translate(
         "save"
     )

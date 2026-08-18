@@ -11,6 +11,7 @@
 
     <form
         method="post"
+        enctype="multipart/form-data"
         novalidate
     >
         {{ form.hidden_tag() }}
@@ -124,6 +125,76 @@
             {{ form.barcode_type() }}
         </div>
 
+        <section class="product-image-upload-panel">
+
+            <h2 class="product-image-upload-title">
+                {{ t("product_field_images") }}
+            </h2>
+
+            <div class="product-image-upload-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button product-image-upload-button"
+                    data-target="{{ form.images.id }}"
+                >
+                    {{ t("product_images_choose_files") }}
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-button product-image-upload-button"
+                    data-target="{{ form.camera_image.id }}"
+                >
+                    {{ t("product_images_take_photo") }}
+                </button>
+
+            </div>
+
+<div
+    class="product-image-pending"
+    id="product-image-pending"
+    hidden
+>
+    <div class="product-image-pending-title">
+        {{ t("product_images_pending") }}
+    </div>
+
+    <div
+        class="product-image-pending-grid"
+        id="product-image-pending-grid"
+    ></div>
+</div>
+
+            {{ form.images(
+                accept="image/*",
+                class="product-image-hidden-input"
+            ) }}
+
+            {{ form.camera_image(
+                accept="image/*",
+                capture="environment",
+                class="product-image-hidden-input"
+            ) }}
+
+            <div class="field-help">
+                {{ t("product_images_help") }}
+            </div>
+
+            {% for error in form.images.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+
+            {% for error in form.camera_image.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+
+        </section>
+
         <div class="form-actions">
             {{ form.submit(
                 class="primary-button auto-width"
@@ -134,6 +205,395 @@
             </a>
         </div>
     </form>
+
+    {% if product and product.images %}
+
+        <section class="product-image-manager">
+
+            <h2>
+                {{ t("product_images_existing") }}
+            </h2>
+
+            <div class="product-image-grid">
+
+                {% for image in product.images %}
+
+                    <article class="product-image-card">
+
+                        <div class="product-image-preview-wrap">
+                            <img
+                                class="product-image-preview"
+                                src="{{
+                                    url_for(
+                                        'inventory.product_image',
+                                        public_id=image.public_id
+                                    )
+                                }}"
+                                alt="{{ product.name }}"
+                                loading="lazy"
+                            >
+
+                            {% if image.is_cover %}
+                                <span class="product-cover-badge">
+                                    {{ t("product_image_cover") }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-image-meta">
+                            {% if image.width and image.height %}
+                                <span>
+                                    {{ image.width }} × {{ image.height }}
+                                </span>
+                            {% endif %}
+
+                            {% if image.file_size %}
+                                <span>
+                                    {{
+                                        (
+                                            image.file_size
+                                            / 1024
+                                        )
+                                        | round(0)
+                                        | int
+                                    }}
+                                    KB
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-image-actions">
+
+                            {% if not image.is_cover %}
+                                <form
+                                    method="post"
+                                    action="{{
+                                        url_for(
+                                            'inventory.product_image_cover',
+                                            product_public_id=product.public_id,
+                                            image_public_id=image.public_id
+                                        )
+                                    }}"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="secondary-button"
+                                    >
+                                        {{ t("product_image_set_cover") }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form
+                                method="post"
+                                action="{{
+                                    url_for(
+                                        'inventory.product_image_delete',
+                                        product_public_id=product.public_id,
+                                        image_public_id=image.public_id
+                                    )
+                                }}"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="link-button danger-link"
+                                >
+                                    {{ t("product_image_delete") }}
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
 </section>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        const imageInput =
+            document.getElementById(
+                "{{ form.images.id }}"
+            );
+
+        const cameraInput =
+            document.getElementById(
+                "{{ form.camera_image.id }}"
+            );
+
+        const selectedFiles =
+            new DataTransfer();
+
+
+        const pendingWrap =
+            document.getElementById(
+                "product-image-pending"
+            );
+
+
+        const pendingGrid =
+            document.getElementById(
+                "product-image-pending-grid"
+            );
+
+
+        function syncImageInput() {
+            imageInput.files =
+                selectedFiles.files;
+        }
+
+        function renderPendingFiles() {
+            if (
+                !pendingWrap
+                || !pendingGrid
+            ) {
+                return;
+            }
+
+            pendingGrid.innerHTML = "";
+
+            const files = Array.from(
+                selectedFiles.files
+            );
+
+            pendingWrap.hidden =
+                files.length === 0;
+
+            files.forEach(
+                (file, index) => {
+                    const card =
+                        document.createElement(
+                            "div"
+                        );
+
+                    card.className =
+                        "product-image-pending-card";
+
+                    const image =
+                        document.createElement(
+                            "img"
+                        );
+
+                    image.className =
+                        "product-image-pending-preview";
+
+                    image.alt = file.name;
+
+                    const objectUrl =
+                        URL.createObjectURL(
+                            file
+                        );
+
+                    image.src = objectUrl;
+
+                    image.onload = () => {
+                        URL.revokeObjectURL(
+                            objectUrl
+                        );
+                    };
+
+                    const removeButton =
+                        document.createElement(
+                            "button"
+                        );
+
+                    removeButton.type =
+                        "button";
+
+                    removeButton.className =
+                        "product-image-pending-remove";
+
+                    removeButton.textContent =
+                        "×";
+
+                    removeButton.addEventListener(
+                        "click",
+                        () => {
+                            const replacement =
+                                new DataTransfer();
+
+                            Array.from(
+                                selectedFiles.files
+                            ).forEach(
+                                (
+                                    existing,
+                                    existingIndex
+                                ) => {
+                                    if (
+                                        existingIndex
+                                        !== index
+                                    ) {
+                                        replacement
+                                            .items
+                                            .add(
+                                                existing
+                                            );
+                                    }
+                                }
+                            );
+
+                            selectedFiles
+                                .items
+                                .clear();
+
+                            Array.from(
+                                replacement.files
+                            ).forEach(
+                                existing => {
+                                    selectedFiles
+                                        .items
+                                        .add(
+                                            existing
+                                        );
+                                }
+                            );
+
+                            if (imageInput) {
+                                imageInput.files =
+                                    selectedFiles.files;
+                            }
+
+                            renderPendingFiles();
+                        }
+                    );
+
+                    card.appendChild(
+                        image
+                    );
+
+                    card.appendChild(
+                        removeButton
+                    );
+
+                    pendingGrid.appendChild(
+                        card
+                    );
+                }
+            );
+        }
+
+        function addFiles(files) {
+            Array.from(files).forEach(
+                file => {
+                    selectedFiles.items.add(
+                        file
+                    );
+                }
+            );
+
+            renderPendingFiles();
+            syncImageInput();
+        }
+
+        if (imageInput) {
+            imageInput.addEventListener(
+                "change",
+                event => {
+                    const pickedFiles =
+                        Array.from(
+                            event.target.files
+                        );
+
+                    pickedFiles.forEach(
+                        file => {
+                            const alreadyExists =
+                                Array.from(
+                                    selectedFiles.files
+                                )
+                                .some(
+                                    existing =>
+                                        existing.name
+                                            === file.name
+                                        &&
+                                        existing.size
+                                            === file.size
+                                        &&
+                                        existing.lastModified
+                                            === file.lastModified
+                                );
+
+                            if (!alreadyExists) {
+                                selectedFiles.items.add(
+                                    file
+                                );
+                            }
+                        }
+                    );
+
+                    syncImageInput();
+                    renderPendingFiles();
+                }
+            );
+        }
+
+        if (cameraInput) {
+            cameraInput.addEventListener(
+                "change",
+                event => {
+                    if (
+                        event.target.files
+                        && event.target.files.length
+                    ) {
+                        addFiles(
+                            event.target.files
+                        );
+
+                        /*
+                         * Kiürítjük, hogy a következő
+                         * fotó ne írja felül az előzőt.
+                         */
+                        cameraInput.value = "";
+                    }
+                }
+            );
+        }
+
+
+        document
+            .querySelectorAll(
+                ".product-image-upload-button"
+            )
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        const targetId =
+                            button.dataset.target;
+
+                        const input =
+                            document.getElementById(
+                                targetId
+                            );
+
+                        if (input) {
+                            input.click();
+                        }
+                    }
+                );
+            });
+    }
+);
+</script>
 
 {% endblock %}
