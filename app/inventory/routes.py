@@ -2553,6 +2553,11 @@ def batch_quantity_action(
 
     form = BatchQuantityActionForm()
 
+    if request.method == "GET":
+        form.quantity.data = Decimal(
+            batch.quantity
+        )
+
     form.quantity.label.text = (
         translate(
             "movement_quantity"
