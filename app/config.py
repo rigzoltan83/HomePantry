@@ -39,3 +39,13 @@ class Config:
     MAX_CONTENT_LENGTH = (
         50 * 1024 * 1024
     )
+
+    OPEN_FOOD_FACTS_USER_AGENT = (
+        os.getenv(
+            "OPEN_FOOD_FACTS_USER_AGENT",
+            (
+                "HomePantry/1.0 "
+                "(private household inventory)"
+            ),
+        )
+    )

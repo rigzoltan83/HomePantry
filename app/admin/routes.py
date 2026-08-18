@@ -1373,6 +1373,17 @@ def ingredient_new():
                 )
             )
 
+        if (
+            return_to
+            == "batch_new"
+        ):
+            return redirect(
+                url_for(
+                    "inventory.batch_new",
+                    ingredient_id=ingredient.id,
+                )
+            )
+
         return redirect(
             url_for(
                 "admin.ingredients"

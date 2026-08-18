@@ -33,8 +33,23 @@
             </div>
         {% endif %}
 
-        <div class="field">
-            {{ form.ingredient_id.label }}
+<div class="field">
+    <div class="field-label-actions">
+        {{ form.ingredient_id.label }}
+
+<a
+    class="small-action-link js-batch-new-ingredient-link"
+    href="{{
+        url_for(
+            'admin.ingredient_new',
+            return_to='batch_new'
+        )
+    }}"
+>
+
+            {{ t("product_add_ingredient") }}
+        </a>
+    </div>
 
             <div class="autocomplete-select">
                 {{ form.ingredient_id(
@@ -157,8 +172,8 @@
             </p>
         </div>
 
-        <div class="field">
-            {{ form.product_id.label }}
+<div class="field js-existing-product-field">
+    {{ form.product_id.label }}
 
             <div class="autocomplete-select">
                 {{ form.product_id(

@@ -53,6 +53,10 @@ from .forms import (
     StorageLocationForm,
 )
 
+from .open_food_facts import (
+    lookup_open_food_facts,
+)
+
 from .product_images import (
     delete_product_image_file,
     save_product_image,
@@ -1741,6 +1745,30 @@ def batch_new():
     )
 
     form = InventoryBatchForm()
+
+    requested_ingredient_id = (
+        request.args.get(
+            "ingredient_id",
+            type=int,
+        )
+    )
+
+    if (
+        not form.is_submitted()
+        and requested_ingredient_id
+    ):
+        ingredient = db.session.get(
+            Ingredient,
+            requested_ingredient_id,
+        )
+
+        if (
+            ingredient is not None
+            and ingredient.is_active
+        ):
+            form.ingredient_id.data = (
+                ingredient.id
+            )
 
     if not form.is_submitted():
         form.purchase_date.data = (
@@ -3499,9 +3527,83 @@ def barcode_lookup_api():
     )
 
     if product_barcode is None:
+        external_product = (
+            lookup_open_food_facts(
+                barcode
+            )
+        )
+
+        if external_product is None:
+            return jsonify(
+                found=False,
+                source=None,
+                product=None,
+            )
+
+        package_unit = None
+
+        package_unit_symbol = (
+            external_product.get(
+                "package_unit_symbol"
+            )
+        )
+
+        if package_unit_symbol:
+            package_unit = (
+                db.session.scalar(
+                    select(Unit)
+                    .where(
+                        Unit.symbol
+                        == package_unit_symbol,
+                        Unit.is_active.is_(
+                            True
+                        ),
+                    )
+                )
+            )
+
         return jsonify(
-            found=False,
-            product=None,
+            found=True,
+            source="open_food_facts",
+            product={
+                "id": None,
+                "public_id": None,
+                "name": (
+                    external_product.get(
+                        "name"
+                    )
+                    or ""
+                ),
+                "brand": (
+                    external_product.get(
+                        "brand"
+                    )
+                    or ""
+                ),
+                "ingredient_id": None,
+                "ingredient_name": None,
+                "package_quantity": (
+                    external_product.get(
+                        "package_quantity"
+                    )
+                ),
+                "package_unit_id": (
+                    package_unit.id
+                    if package_unit
+                    else None
+                ),
+                "package_unit_symbol": (
+                    package_unit.symbol
+                    if package_unit
+                    else package_unit_symbol
+                ),
+                "barcode": barcode,
+                "image_url": (
+                    external_product.get(
+                        "image_url"
+                    )
+                ),
+            },
         )
 
     product = (
@@ -3533,6 +3635,7 @@ def barcode_lookup_api():
 
     return jsonify(
         found=True,
+        source="local",
         product={
             "id": product.id,
             "public_id": str(

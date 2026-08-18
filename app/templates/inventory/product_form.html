@@ -58,6 +58,12 @@
         <div class="field">
             {{ form.name.label }}
             {{ form.name() }}
+
+            {% for error in form.name.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
         </div>
 
         <div class="field">
@@ -81,22 +87,36 @@
             ) }}
         </div>
 
-        <div class="field barcode-product-field">
+        <div class="field">
             {{ form.barcode.label }}
 
             <div class="barcode-input-row">
+
                 {{ form.barcode(
+                    class="js-product-barcode-input",
                     inputmode="numeric",
-                    autocomplete="off",
-                    class="js-product-barcode-input"
+                    autocomplete="off"
                 ) }}
 
-                <button
-                    type="button"
-                    class="secondary-button js-product-scan-button"
-                >
-                    {{ t("barcode_scan") }}
-                </button>
+<button
+    type="button"
+    class="secondary-button js-product-barcode-lookup-button"
+    data-lookup-url="{{
+        url_for(
+            'inventory.barcode_lookup_api'
+        )
+    }}"
+>
+    {{ t("barcode_lookup") }}
+</button>
+
+<button
+    type="button"
+    class="secondary-button js-product-scan-button"
+>
+    {{ t("barcode_scan") }}
+</button>
+
             </div>
 
             <div
@@ -118,11 +138,6 @@
                     {{ t("barcode_stop_scan") }}
                 </button>
             </div>
-        </div>
-
-        <div class="field">
-            {{ form.barcode_type.label }}
-            {{ form.barcode_type() }}
         </div>
 
         <section class="product-image-upload-panel">

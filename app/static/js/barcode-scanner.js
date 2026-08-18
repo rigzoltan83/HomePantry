@@ -303,6 +303,161 @@ document.addEventListener(
                     ".js-barcode-new-product"
                 );
 
+            const existingProductField =
+                document.querySelector(
+                    ".js-existing-product-field"
+                );
+
+            const batchDraftStorageKey =
+                "homepantry_batch_new_draft";
+
+            const newIngredientLink =
+                document.querySelector(
+                    ".js-batch-new-ingredient-link"
+                );
+
+
+            const saveBatchDraft = () => {
+                const draft = {
+                    barcode: (
+                        barcodeInput
+                            ? barcodeInput.value
+                            : ""
+                    ),
+                    new_product_name: (
+                        document.getElementById(
+                            "new_product_name"
+                        )?.value || ""
+                    ),
+                    new_product_brand: (
+                        document.getElementById(
+                            "new_product_brand"
+                        )?.value || ""
+                    ),
+                    product_id: (
+                        document.getElementById(
+                            "product_id"
+                        )?.value || ""
+                    ),
+                    storage_location_id: (
+                        document.getElementById(
+                            "storage_location_id"
+                        )?.value || ""
+                    ),
+                    quantity: (
+                        document.getElementById(
+                            "quantity"
+                        )?.value || ""
+                    ),
+                    purchase_date: (
+                        document.getElementById(
+                            "purchase_date"
+                        )?.value || ""
+                    ),
+                    expiration_date: (
+                        document.getElementById(
+                            "expiration_date"
+                        )?.value || ""
+                    ),
+                    note: (
+                        document.getElementById(
+                            "note"
+                        )?.value || ""
+                    ),
+                    newProductVisible: Boolean(
+                        newProductPanel
+                        && !newProductPanel.hidden
+                    ),
+                };
+
+                sessionStorage.setItem(
+                    batchDraftStorageKey,
+                    JSON.stringify(draft)
+                );
+            };
+
+
+            const restoreBatchDraft = () => {
+                const raw =
+                    sessionStorage.getItem(
+                        batchDraftStorageKey
+                    );
+
+                if (!raw) {
+                    return;
+                }
+
+                let draft;
+
+                try {
+                    draft = JSON.parse(raw);
+                } catch (error) {
+                    sessionStorage.removeItem(
+                        batchDraftStorageKey
+                    );
+
+                    return;
+                }
+
+                if (barcodeInput) {
+                    barcodeInput.value =
+                        draft.barcode || "";
+                }
+
+                [
+                    "new_product_name",
+                    "new_product_brand",
+                    "storage_location_id",
+                    "quantity",
+                    "purchase_date",
+                    "expiration_date",
+                    "note",
+                ].forEach(
+                    fieldName => {
+                        const field =
+                            document.getElementById(
+                                fieldName
+                            );
+
+                        if (
+                            field
+                            && draft[fieldName]
+                                !== undefined
+                        ) {
+                            field.value =
+                                draft[fieldName];
+                        }
+                    }
+                );
+
+                if (
+                    draft.newProductVisible
+                    && newProductPanel
+                ) {
+                    newProductPanel.hidden =
+                        false;
+
+                    if (existingProductField) {
+                        existingProductField.hidden =
+                            true;
+                    }
+                }
+
+                sessionStorage.removeItem(
+                    batchDraftStorageKey
+                );
+            };
+
+
+            if (newIngredientLink) {
+                newIngredientLink.addEventListener(
+                    "click",
+                    saveBatchDraft
+                );
+            }
+
+            restoreBatchDraft();
+
             const lookupUrl =
                 lookupContainer.dataset
                     .lookupUrl;
@@ -361,6 +516,11 @@ document.addEventListener(
                                 false;
                         }
 
+if (existingProductField) {
+    existingProductField.hidden =
+        true;
+}
+
                         const productSelect =
                             document.getElementById(
                                 "product_id"
@@ -391,11 +551,6 @@ document.addEventListener(
                     const product =
                         data.product;
 
-                    if (newProductPanel) {
-                        newProductPanel.hidden =
-                            true;
-                    }
-
                     const productSelect =
                         document.getElementById(
                             "product_id"
@@ -415,6 +570,135 @@ document.addEventListener(
                         document.getElementById(
                             "unit_id"
                         );
+
+
+                    /*
+                     * Open Food Facts találat:
+                     * még nincs helyi Product rekord.
+                     */
+                    if (
+                        data.source
+                        === "open_food_facts"
+                    ) {
+                        if (newProductPanel) {
+                            newProductPanel.hidden =
+                                false;
+                        }
+
+if (existingProductField) {
+    existingProductField.hidden =
+        true;
+}
+
+                        if (productSelect) {
+                            productSelect.value = "0";
+
+                            const wrapper =
+                                productSelect.closest(
+                                    ".autocomplete-select"
+                                );
+
+                            const input =
+                                wrapper
+                                    ?.querySelector(
+                                        ".js-autocomplete-input"
+                                    );
+
+                            if (input) {
+                                input.value = "";
+                            }
+                        }
+
+                        const newProductName =
+                            document.getElementById(
+                                "new_product_name"
+                            );
+
+                        const newProductBrand =
+                            document.getElementById(
+                                "new_product_brand"
+                            );
+
+                        if (
+                            newProductName
+                            && product.name
+                        ) {
+                            newProductName.value =
+                                product.name;
+                        }
+
+                        if (
+                            newProductBrand
+                            && product.brand
+                        ) {
+                            newProductBrand.value =
+                                product.brand;
+                        }
+
+                        if (
+                            quantityInput
+                            && product.package_quantity
+                            !== null
+                        ) {
+                            quantityInput.value =
+                                product.package_quantity;
+                        }
+
+                        if (
+                            unitSelect
+                            && product.package_unit_id
+                        ) {
+                            selectOptionWhenAvailable(
+                                unitSelect,
+                                product.package_unit_id
+                            );
+                        }
+
+                        const productLabel =
+                            [
+                                product.brand,
+                                product.name,
+                            ]
+                                .filter(Boolean)
+                                .join(" — ");
+
+                        const packageLabel =
+                            (
+                                product.package_quantity
+                                && product.package_unit_symbol
+                            )
+                                ? (
+                                    product.package_quantity
+                                    + " "
+                                    + product.package_unit_symbol
+                                )
+                                : "";
+
+                        status.textContent =
+                            [
+                                "Open Food Facts:",
+                                productLabel,
+                                packageLabel,
+                            ]
+                                .filter(Boolean)
+                                .join(" ");
+
+                        return;
+                    }
+
+
+                    /*
+                     * Saját HomePantry termék.
+                     */
+                    if (newProductPanel) {
+                        newProductPanel.hidden =
+                            true;
+                    }
+
+if (existingProductField) {
+    existingProductField.hidden =
+        false;
+}
 
                     if (productSelect) {
                         syncAutocomplete(
@@ -522,6 +806,147 @@ document.addEventListener(
                 }
             );
 
+        }
+
+        const productLookupButton =
+            document.querySelector(
+                ".js-product-barcode-lookup-button"
+            );
+
+        if (productLookupButton) {
+            const input =
+                document.querySelector(
+                    ".js-product-barcode-input"
+                );
+
+            const status =
+                document.querySelector(
+                    ".js-product-barcode-status"
+                );
+
+            const lookupUrl =
+                productLookupButton.dataset
+                    .lookupUrl;
+
+            const lookupProductBarcode =
+                async () => {
+                    const barcode =
+                        input?.value
+                            ?.trim();
+
+                    if (!barcode) {
+                        return;
+                    }
+
+                    if (status) {
+                        status.textContent =
+                            "Keresés...";
+                    }
+
+                    const url =
+                        new URL(
+                            lookupUrl,
+                            window.location.origin
+                        );
+
+                    url.searchParams.set(
+                        "barcode",
+                        barcode
+                    );
+
+                    try {
+                        const response =
+                            await fetch(
+                                url.toString(),
+                                {
+                                    headers: {
+                                        "Accept":
+                                            "application/json",
+                                    },
+                                }
+                            );
+
+                        if (!response.ok) {
+                            if (status) {
+                                status.textContent =
+                                    "A keresés nem sikerült.";
+                            }
+
+                            return;
+                        }
+
+                        const data =
+                            await response.json();
+
+                        if (
+                            !data.found
+                            || !data.product
+                        ) {
+                            if (status) {
+                                status.textContent =
+                                    "Nincs találat.";
+                            }
+
+                            return;
+                        }
+
+                        const product =
+                            data.product;
+
+                        if (status) {
+                            const productLabel =
+                                [
+                                    product.brand,
+                                    product.name,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" — ");
+
+                            const packageLabel =
+                                (
+                                    product.package_quantity
+                                    && product.package_unit_symbol
+                                )
+                                    ? (
+                                        product.package_quantity
+                                        + " "
+                                        + product.package_unit_symbol
+                                    )
+                                    : "";
+
+                            status.textContent =
+                                [
+                                    productLabel,
+                                    packageLabel,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" · ");
+                        }
+                    } catch (error) {
+                        if (status) {
+                            status.textContent =
+                                "A keresés nem sikerült.";
+                        }
+                    }
+                };
+
+            productLookupButton.addEventListener(
+                "click",
+                lookupProductBarcode
+            );
+
+            input?.addEventListener(
+                "keydown",
+                event => {
+                    if (
+                        event.key === "Enter"
+                    ) {
+                        event.preventDefault();
+
+                        lookupProductBarcode();
+                    }
+                }
+            );
         }
 
         const productScanButton =
