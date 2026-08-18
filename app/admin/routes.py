@@ -1,6 +1,9 @@
+import csv
+import io
 import re
 import unicodedata
 from flask import (
+    Response,
     abort,
     flash,
     redirect,
@@ -31,6 +34,10 @@ from app.models import (
     IngredientCategory,
     IngredientTranslation,
     IngredientUnit,
+    InventoryBatch,
+    Product,
+    ProductBarcode,
+    StorageLocation,
     Unit,
     User,
 )
@@ -1715,4 +1722,311 @@ def ingredient_toggle(
         url_for(
             "admin.ingredients"
         )
+    )
+
+
+@bp.get(
+    "/data-management"
+)
+@login_required
+def data_management():
+    get_admin_membership()
+
+    return render_template(
+        "admin/data_management.html"
+    )
+
+
+def csv_response(
+    filename,
+    rows,
+):
+    output = io.StringIO(
+        newline=""
+    )
+
+    output.write(
+        "\ufeff"
+    )
+
+    writer = csv.writer(
+        output,
+        delimiter=";",
+        quoting=csv.QUOTE_MINIMAL,
+        lineterminator="\r\n",
+    )
+
+    for row in rows:
+        writer.writerow(
+            row
+        )
+
+    return Response(
+        output.getvalue(),
+        mimetype=(
+            "text/csv; "
+            "charset=utf-8"
+        ),
+        headers={
+            "Content-Disposition": (
+                f'attachment; '
+                f'filename="{filename}"'
+            ),
+        },
+    )
+
+@bp.get(
+    "/data-management/export-inventory"
+)
+@login_required
+def export_inventory():
+    membership = (
+        get_admin_membership()
+    )
+
+    household_id = (
+        membership.household_id
+    )
+
+    batches = db.session.scalars(
+        select(InventoryBatch)
+        .where(
+            InventoryBatch.household_id
+            == household_id,
+        )
+        .order_by(
+            InventoryBatch.id,
+        )
+    ).all()
+
+    rows = [
+        (
+            "Alapanyag",
+            "Termék",
+            "Márka",
+            "Vonalkód",
+            "Mennyiség",
+            "Mértékegység",
+            "Tárolási hely",
+            "Vásárlás dátuma",
+            "Lejárat dátuma",
+            "Aktív",
+            "Megjegyzés",
+        )
+    ]
+
+    for batch in batches:
+        ingredient_name = (
+            next(
+                (
+                    translation.name
+                    for translation
+                    in batch.ingredient.translations
+                    if translation.language_code
+                    == (
+                        current_user
+                        .preferred_language
+                        or "hu"
+                    )
+                ),
+                None,
+            )
+            or batch.ingredient.canonical_key
+        )
+
+        product_name = (
+            batch.product.name
+            if batch.product
+            else ""
+        )
+
+        brand = (
+            batch.product.brand
+            if batch.product
+            else ""
+        )
+
+        barcode = ""
+
+        if (
+            batch.product
+            and batch.product.barcodes
+        ):
+            barcode = (
+                batch.product.barcodes[0]
+                .barcode
+            )
+
+        location_path = ""
+
+        if batch.storage_location:
+            parts = []
+
+            current_location = (
+                batch.storage_location
+            )
+
+            while (
+                current_location
+                is not None
+            ):
+                parts.append(
+                    current_location.name
+                )
+
+                current_location = (
+                    current_location.parent
+                )
+
+            location_path = " → ".join(
+                reversed(parts)
+            )
+
+        rows.append(
+            (
+                ingredient_name,
+                product_name,
+                brand,
+                barcode,
+                batch.quantity,
+                (
+                    batch.unit.symbol
+                    if batch.unit
+                    else ""
+                ),
+                location_path,
+                (
+                    batch.purchase_date
+                    .isoformat()
+                    if batch.purchase_date
+                    else ""
+                ),
+                (
+                    batch.expiration_date
+                    .isoformat()
+                    if batch.expiration_date
+                    else ""
+                ),
+                (
+                    "Igen"
+                    if batch.is_active
+                    else "Nem"
+                ),
+                batch.note or "",
+            )
+        )
+
+    return csv_response(
+        "homepantry-inventory.csv",
+        rows,
+    )
+
+@bp.get(
+    "/data-management/export-products"
+)
+@login_required
+def export_products():
+    membership = (
+        get_admin_membership()
+    )
+
+    household_id = (
+        membership.household_id
+    )
+
+    products = db.session.scalars(
+        select(Product)
+        .where(
+            Product.household_id
+            == household_id,
+        )
+        .order_by(
+            Product.id,
+        )
+    ).all()
+
+    rows = [
+        (
+            "Termék",
+            "Márka",
+            "Alapanyag",
+            "Vonalkódok",
+            "Csomag mennyiség",
+            "Csomag mértékegység",
+            "Magyar név",
+            "Angol név",
+            "Magyar általános név",
+            "Angol általános név",
+            "Magyar összetevők",
+            "Angol összetevők",
+            "Külső forrás",
+            "Külső azonosító",
+            "Aktív",
+        )
+    ]
+
+    for product in products:
+        ingredient_name = ""
+
+        if product.ingredient:
+            ingredient_name = (
+                next(
+                    (
+                        translation.name
+                        for translation
+                        in product.ingredient.translations
+                        if translation.language_code
+                        == (
+                            current_user
+                            .preferred_language
+                            or "hu"
+                        )
+                    ),
+                    None,
+                )
+                or product.ingredient.canonical_key
+            )
+
+        barcodes = ", ".join(
+            barcode.barcode
+            for barcode in product.barcodes
+            if barcode.barcode
+        )
+
+        rows.append(
+            (
+                product.name,
+                product.brand or "",
+                ingredient_name,
+                barcodes,
+                (
+                    product.package_quantity
+                    if product.package_quantity
+                    is not None
+                    else ""
+                ),
+                (
+                    product.package_unit.symbol
+                    if product.package_unit
+                    else ""
+                ),
+                product.name_hu or "",
+                product.name_en or "",
+                product.generic_name_hu or "",
+                product.generic_name_en or "",
+                product.ingredients_text_hu or "",
+                product.ingredients_text_en or "",
+                product.external_source or "",
+                product.external_source_id or "",
+                (
+                    "Igen"
+                    if product.is_active
+                    else "Nem"
+                ),
+            )
+        )
+
+    return csv_response(
+        "homepantry-products.csv",
+        rows,
     )

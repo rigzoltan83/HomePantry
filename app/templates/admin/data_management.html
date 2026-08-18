@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("admin_data_management_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h1>
+            {{ t("admin_data_management_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("admin_data_management_description") }}
+        </p>
+    </div>
+</div>
+
+<section class="admin-dashboard-grid">
+
+    <a
+        class="admin-dashboard-card"
+        href="{{
+            url_for(
+                'admin.export_inventory'
+            )
+        }}"
+    >
+        <div>
+            <h2>
+                {{ t("admin_export_inventory_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("admin_export_inventory_description") }}
+            </p>
+        </div>
+    </a>
+
+    <a
+        class="admin-dashboard-card"
+        href="{{
+            url_for(
+                'admin.export_products'
+            )
+        }}"
+    >
+        <div>
+            <h2>
+                {{ t("admin_export_products_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("admin_export_products_description") }}
+            </p>
+        </div>
+    </a>
+
+</section>
+
+{% endblock %}

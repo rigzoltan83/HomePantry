@@ -3,6 +3,24 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"admin_data_management_title": (
+    "Adatkezelés"
+),
+"admin_data_management_description": (
+    "Adatok exportálása és karbantartási műveletek."
+),
+"admin_export_inventory_title": (
+    "Aktuális készlet export"
+),
+"admin_export_inventory_description": (
+    "Az aktuális háztartás készlettételeinek letöltése CSV formátumban."
+),
+"admin_export_products_title": (
+    "Terméktörzs export"
+),
+"admin_export_products_description": (
+    "Az aktuális háztartás terméktörzsének letöltése CSV formátumban."
+),
 "expiring_soon_settings_title": (
     "Szavatossági figyelmeztetés"
 ),
@@ -622,6 +640,24 @@ TRANSLATIONS = {
     },
 
     "en": {
+"admin_data_management_title": (
+    "Data management"
+),
+"admin_data_management_description": (
+    "Export data and perform maintenance operations."
+),
+"admin_export_inventory_title": (
+    "Current inventory export"
+),
+"admin_export_inventory_description": (
+    "Download the current household inventory batches in CSV format."
+),
+"admin_export_products_title": (
+    "Product master export"
+),
+"admin_export_products_description": (
+    "Download the current household product master in CSV format."
+),
 "expiring_soon_settings_title": (
     "Expiration warning"
 ),
