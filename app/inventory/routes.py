@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import (
     date,
     timedelta,
@@ -1942,6 +1943,19 @@ def batch_new():
 
         created_new_product = False
 
+        external_metadata = {}
+
+        if form.external_metadata.data:
+            try:
+                external_metadata = json.loads(
+                    form.external_metadata.data
+                )
+            except (
+                TypeError,
+                ValueError,
+            ):
+                external_metadata = {}
+
         if (
             barcode_value
             and product is None
@@ -1977,6 +1991,54 @@ def batch_new():
                     form.quantity.data
                 ),
                 package_unit=unit,
+
+                name_hu=(
+                    external_metadata.get(
+                        "name_hu"
+                    )
+                ),
+                name_en=(
+                    external_metadata.get(
+                        "name_en"
+                    )
+                ),
+                generic_name_hu=(
+                    external_metadata.get(
+                        "generic_name_hu"
+                    )
+                ),
+                generic_name_en=(
+                    external_metadata.get(
+                        "generic_name_en"
+                    )
+                ),
+                ingredients_text_hu=(
+                    external_metadata.get(
+                        "ingredients_text_hu"
+                    )
+                ),
+                ingredients_text_en=(
+                    external_metadata.get(
+                        "ingredients_text_en"
+                    )
+                ),
+                external_source=(
+                    external_metadata.get(
+                        "source"
+                    )
+                ),
+                external_source_id=(
+                    external_metadata.get(
+                        "source_id"
+                    )
+                ),
+                external_data=(
+                    external_metadata.get(
+                        "external_data"
+                    )
+                    or None
+                ),
+
                 is_active=True,
             )
 
@@ -1990,7 +2052,12 @@ def batch_new():
                 product=product,
                 barcode=barcode_value,
                 barcode_type=None,
-                source="manual",
+                source=(
+                    external_metadata.get(
+                        "source"
+                    )
+                    or "manual"
+                ),
                 is_verified=True,
             )
 
@@ -3597,12 +3664,43 @@ def barcode_lookup_api():
                     if package_unit
                     else package_unit_symbol
                 ),
-                "barcode": barcode,
-                "image_url": (
+                "name_hu": (
                     external_product.get(
-                        "image_url"
+                        "name_hu"
                     )
                 ),
+                "name_en": (
+                    external_product.get(
+                        "name_en"
+                    )
+                ),
+                "generic_name_hu": (
+                    external_product.get(
+                        "generic_name_hu"
+                    )
+                ),
+                "generic_name_en": (
+                    external_product.get(
+                        "generic_name_en"
+                    )
+                ),
+                "ingredients_text_hu": (
+                    external_product.get(
+                        "ingredients_text_hu"
+                    )
+                ),
+                "ingredients_text_en": (
+                    external_product.get(
+                        "ingredients_text_en"
+                    )
+                ),
+                "external_data": (
+                    external_product.get(
+                        "external_data"
+                    )
+                    or {}
+                ),
+                "barcode": barcode,
             },
         )
 

@@ -74,11 +74,30 @@ def lookup_open_food_facts(
                     "code,"
                     "product_name,"
                     "product_name_hu,"
+                    "product_name_en,"
+                    "generic_name,"
+                    "generic_name_hu,"
+                    "generic_name_en,"
                     "brands,"
                     "quantity,"
-                    "image_front_url,"
-                    "image_front_small_url"
+                    "ingredients_text,"
+                    "ingredients_text_hu,"
+                    "ingredients_text_en,"
+                    "ingredients,"
+                    "ingredients_tags,"
+                    "allergens,"
+                    "allergens_tags,"
+                    "traces,"
+                    "traces_tags,"
+                    "categories,"
+                    "categories_tags,"
+                    "labels,"
+                    "labels_tags,"
+                    "nutriments,"
+                    "nova_group"
                 ),
+                "lc": "hu",
+                "tags_lc": "hu",
             },
             headers={
                 "User-Agent": (
@@ -150,10 +169,182 @@ def lookup_open_food_facts(
         quantity_text
     )
 
+    name_hu = (
+        product.get(
+            "product_name_hu"
+        )
+        or ""
+    ).strip()
+
+    name_en = (
+        product.get(
+            "product_name_en"
+        )
+        or ""
+    ).strip()
+
+    fallback_name = (
+        product.get(
+            "product_name"
+        )
+        or ""
+    ).strip()
+
+    name = (
+        name_hu
+        or name_en
+        or fallback_name
+    )
+
+    generic_name_hu = (
+        product.get(
+            "generic_name_hu"
+        )
+        or ""
+    ).strip()
+
+    generic_name_en = (
+        product.get(
+            "generic_name_en"
+        )
+        or ""
+    ).strip()
+
+    ingredients_text_hu = (
+        product.get(
+            "ingredients_text_hu"
+        )
+        or ""
+    ).strip()
+
+    ingredients_text_en = (
+        product.get(
+            "ingredients_text_en"
+        )
+        or ""
+    ).strip()
+
+    fallback_ingredients_text = (
+        product.get(
+            "ingredients_text"
+        )
+        or ""
+    ).strip()
+
+    if (
+        not ingredients_text_hu
+        and fallback_ingredients_text
+    ):
+        ingredients_text_hu = (
+            fallback_ingredients_text
+        )
+
+    if (
+        not ingredients_text_en
+        and fallback_ingredients_text
+    ):
+        ingredients_text_en = (
+            fallback_ingredients_text
+        )
+
+    external_data = {
+        "ingredients": (
+            product.get(
+                "ingredients"
+            )
+            or []
+        ),
+        "ingredients_tags": (
+            product.get(
+                "ingredients_tags"
+            )
+            or []
+        ),
+        "allergens": (
+            product.get(
+                "allergens"
+            )
+            or ""
+        ),
+        "allergens_tags": (
+            product.get(
+                "allergens_tags"
+            )
+            or []
+        ),
+        "traces": (
+            product.get(
+                "traces"
+            )
+            or ""
+        ),
+        "traces_tags": (
+            product.get(
+                "traces_tags"
+            )
+            or []
+        ),
+        "categories": (
+            product.get(
+                "categories"
+            )
+            or ""
+        ),
+        "categories_tags": (
+            product.get(
+                "categories_tags"
+            )
+            or []
+        ),
+        "labels": (
+            product.get(
+                "labels"
+            )
+            or ""
+        ),
+        "labels_tags": (
+            product.get(
+                "labels_tags"
+            )
+            or []
+        ),
+        "nutriments": (
+            product.get(
+                "nutriments"
+            )
+            or {}
+        ),
+        "nova_group": (
+            product.get(
+                "nova_group"
+            )
+        ),
+    }
+
     return {
         "barcode": barcode,
+
         "name": name,
+        "name_hu": (
+            name_hu
+            or None
+        ),
+        "name_en": (
+            name_en
+            or None
+        ),
+
+        "generic_name_hu": (
+            generic_name_hu
+            or None
+        ),
+        "generic_name_en": (
+            generic_name_en
+            or None
+        ),
+
         "brand": brands,
+
         "quantity_text": (
             quantity_text
         ),
@@ -163,13 +354,17 @@ def lookup_open_food_facts(
         "package_unit_symbol": (
             package_unit_symbol
         ),
-        "image_url": (
-            product.get(
-                "image_front_url"
-            )
-            or product.get(
-                "image_front_small_url"
-            )
+
+        "ingredients_text_hu": (
+            ingredients_text_hu
             or None
+        ),
+        "ingredients_text_en": (
+            ingredients_text_en
+            or None
+        ),
+
+        "external_data": (
+            external_data
         ),
     }

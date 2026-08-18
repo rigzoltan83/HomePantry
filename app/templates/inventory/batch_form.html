@@ -14,6 +14,7 @@
         novalidate
     >
         {{ form.hidden_tag() }}
+{{ form.external_metadata() }}
         {% if form.errors %}
             <div class="form-error-summary">
                 <strong>

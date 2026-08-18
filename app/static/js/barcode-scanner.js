@@ -324,6 +324,13 @@ document.addEventListener(
                             ? barcodeInput.value
                             : ""
                     ),
+
+    external_metadata: (
+        document.getElementById(
+            "external_metadata"
+        )?.value || ""
+    ),
+
                     new_product_name: (
                         document.getElementById(
                             "new_product_name"
@@ -404,15 +411,16 @@ document.addEventListener(
                         draft.barcode || "";
                 }
 
-                [
-                    "new_product_name",
-                    "new_product_brand",
-                    "storage_location_id",
-                    "quantity",
-                    "purchase_date",
-                    "expiration_date",
-                    "note",
-                ].forEach(
+[
+    "external_metadata",
+    "new_product_name",
+    "new_product_brand",
+    "storage_location_id",
+    "quantity",
+    "purchase_date",
+    "expiration_date",
+    "note",
+].forEach(
                     fieldName => {
                         const field =
                             document.getElementById(
@@ -619,6 +627,11 @@ if (existingProductField) {
                                 "new_product_brand"
                             );
 
+                        const externalMetadata =
+                            document.getElementById(
+                                "external_metadata"
+                            );
+
                         if (
                             newProductName
                             && product.name
@@ -634,6 +647,39 @@ if (existingProductField) {
                             newProductBrand.value =
                                 product.brand;
                         }
+
+if (externalMetadata) {
+    externalMetadata.value =
+        JSON.stringify({
+            source:
+                "open_food_facts",
+
+            source_id:
+                product.barcode,
+
+            name_hu:
+                product.name_hu,
+
+            name_en:
+                product.name_en,
+
+            generic_name_hu:
+                product.generic_name_hu,
+
+            generic_name_en:
+                product.generic_name_en,
+
+            ingredients_text_hu:
+                product.ingredients_text_hu,
+
+            ingredients_text_en:
+                product.ingredients_text_en,
+
+            external_data:
+                product.external_data
+                || {},
+        });
+}
 
                         if (
                             quantityInput

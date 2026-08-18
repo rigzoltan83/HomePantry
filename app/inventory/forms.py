@@ -5,6 +5,7 @@ from wtforms import (
     DecimalField,
     IntegerField,
     FileField,
+    HiddenField,
     MultipleFileField,
     SelectField,
     StringField,
@@ -94,6 +95,12 @@ class InventoryBatchForm(FlaskForm):
         validators=[
             Optional(),
             Length(max=160),
+        ],
+    )
+
+    external_metadata = HiddenField(
+        validators=[
+            Optional(),
         ],
     )
 

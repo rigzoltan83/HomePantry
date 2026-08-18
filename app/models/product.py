@@ -52,6 +52,53 @@ class Product(db.Model):
         nullable=True,
     )
 
+    name_hu = db.Column(
+        db.String(255),
+        nullable=True,
+    )
+
+    name_en = db.Column(
+        db.String(255),
+        nullable=True,
+    )
+
+    generic_name_hu = db.Column(
+        db.String(500),
+        nullable=True,
+    )
+
+    generic_name_en = db.Column(
+        db.String(500),
+        nullable=True,
+    )
+
+    ingredients_text_hu = db.Column(
+        db.Text,
+        nullable=True,
+    )
+
+    ingredients_text_en = db.Column(
+        db.Text,
+        nullable=True,
+    )
+
+    external_source = db.Column(
+        db.String(60),
+        nullable=True,
+        index=True,
+    )
+
+    external_source_id = db.Column(
+        db.String(160),
+        nullable=True,
+        index=True,
+    )
+
+    external_data = db.Column(
+        db.JSON,
+        nullable=True,
+    )
+
     package_quantity = db.Column(
         db.Numeric(
             precision=18,
