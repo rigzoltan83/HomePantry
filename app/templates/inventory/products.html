@@ -15,13 +15,59 @@
         </p>
     </div>
 
-    <a
-        class="primary-link"
-        href="{{ url_for('inventory.product_new') }}"
-    >
-        {{ t("product_add") }}
-    </a>
+    <div class="page-heading-actions">
+
+<button
+    type="button"
+    class="secondary-button js-refresh-product-metadata"
+    data-csrf-token="{{ csrf_token() }}"
+>
+    {{ t("product_refresh_metadata") }}
+</button>
+
+        <a
+            class="primary-link"
+            href="{{ url_for('inventory.product_new') }}"
+        >
+            {{ t("product_add") }}
+        </a>
+
+    </div>
 </div>
+
+<section
+    class="panel product-refresh-panel"
+    id="product-refresh-panel"
+    hidden
+>
+    <div class="product-refresh-header">
+        <strong>
+            {{ t("product_refresh_metadata") }}
+        </strong>
+
+        <span
+            class="muted"
+            id="product-refresh-summary"
+        ></span>
+    </div>
+
+    <div class="product-refresh-progress-wrap">
+        <div
+            class="product-refresh-progress"
+            id="product-refresh-progress"
+        ></div>
+    </div>
+
+    <div
+        class="product-refresh-current muted"
+        id="product-refresh-current"
+    ></div>
+
+    <div
+        class="product-refresh-log"
+        id="product-refresh-log"
+    ></div>
+</section>
 
 <section class="panel">
     <div class="list-search">
@@ -49,9 +95,21 @@
 
             <tbody>
                 {% for product in products %}
-                    <tr
-                        class="js-product-row{% if not product.is_active %} inactive-row{% endif %}"
-                        data-product-search="
+<tr
+    class="js-product-row{% if not product.is_active %} inactive-row{% endif %}"
+    data-refresh-url="{{
+        url_for(
+            'inventory.product_refresh_metadata',
+            public_id=product.public_id
+        )
+    }}"
+    data-product-name="{{ product.name }}"
+    data-has-barcode="{{
+        '1'
+        if product.barcodes
+        else '0'
+    }}"
+    data-product-search="
                             {{ product.name }}
                             {{ product.brand or '' }}
                             {{ product.ingredient.canonical_key }}
@@ -137,6 +195,18 @@
 
                         <td>
                             <div class="row-actions">
+<button
+    type="button"
+    class="link-button js-product-details-button"
+    data-details-url="{{
+        url_for(
+            'inventory.product_details',
+            public_id=product.public_id
+        )
+    }}"
+>
+    {{ t("product_details") }}
+</button>
                                 <a
                                     href="{{
                                         url_for(
@@ -182,5 +252,140 @@
         </table>
     </div>
 </section>
+
+<div
+    class="product-details-modal"
+    id="product-details-modal"
+    hidden
+>
+    <div
+        class="product-details-backdrop"
+        data-product-details-close
+    ></div>
+
+    <section
+        class="product-details-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-details-title"
+    >
+        <div class="product-details-header">
+            <div>
+                <h2 id="product-details-title">
+                    {{ t("product_details") }}
+                </h2>
+
+                <div
+                    class="muted"
+                    id="product-details-subtitle"
+                ></div>
+            </div>
+
+            <button
+                type="button"
+                class="product-details-close"
+                data-product-details-close
+                aria-label="{{ t('close') }}"
+            >
+                ×
+            </button>
+        </div>
+
+        <div
+            class="product-details-content"
+            id="product-details-content"
+        >
+            <p class="muted">
+                {{ t("product_details_loading") }}
+            </p>
+        </div>
+    </section>
+</div>
+
+<script>
+window.productDetailsI18n = {
+    details: {{ t("product_details") | tojson }},
+    loading: {{
+        t("product_details_loading")
+        | tojson
+    }},
+    loadError: {{
+        t("product_details_load_error")
+        | tojson
+    }},
+
+    ingredients: {{
+        t("product_details_ingredients")
+        | tojson
+    }},
+    allergens: {{
+        t("product_details_allergens")
+        | tojson
+    }},
+    traces: {{
+        t("product_details_traces")
+        | tojson
+    }},
+    categories: {{
+        t("product_details_categories")
+        | tojson
+    }},
+    labels: {{
+        t("product_details_labels")
+        | tojson
+    }},
+    nutrition100g: {{
+        t("product_details_nutrition_100g")
+        | tojson
+    }},
+
+    energy: {{
+        t("product_details_energy")
+        | tojson
+    }},
+    fat: {{
+        t("product_details_fat")
+        | tojson
+    }},
+    saturatedFat: {{
+        t("product_details_saturated_fat")
+        | tojson
+    }},
+    carbohydrates: {{
+        t("product_details_carbohydrates")
+        | tojson
+    }},
+    sugars: {{
+        t("product_details_sugars")
+        | tojson
+    }},
+    proteins: {{
+        t("product_details_proteins")
+        | tojson
+    }},
+    salt: {{
+        t("product_details_salt")
+        | tojson
+    }}
+};
+</script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/product-details.js'
+        )
+    }}"
+></script>
+
+<script
+    src="{{
+        url_for(
+            'static',
+            filename='js/product-metadata-refresh.js'
+        )
+    }}"
+></script>
 
 {% endblock %}

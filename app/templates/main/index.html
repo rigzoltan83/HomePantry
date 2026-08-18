@@ -92,7 +92,12 @@
         </strong>
 
         <span class="dashboard-stat-detail">
-            {{ t("dashboard_next_three_days") }}
+{{
+    t(
+        "dashboard_next_days",
+        days=household.expiring_soon_days
+    )
+}}
         </span>
     </a>
 

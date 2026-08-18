@@ -29,6 +29,55 @@
     </a>
 </div>
 
+<section class="panel compact-settings-panel">
+
+    <form
+        method="post"
+        class="compact-settings-form"
+        novalidate
+    >
+        {{ settings_form.hidden_tag() }}
+
+        <div class="compact-settings-text">
+            <strong>
+                {{ t("expiring_soon_settings_title") }}
+            </strong>
+
+            <span class="muted">
+                {{ t("expiring_soon_settings_description") }}
+            </span>
+        </div>
+
+        <div class="compact-settings-control">
+            {{
+                settings_form.expiring_soon_days(
+                    min="0",
+                    max="365",
+                    inputmode="numeric"
+                )
+            }}
+
+            <span>
+                {{ t("days") }}
+            </span>
+
+            {{
+                settings_form.submit(
+                    class="primary-button auto-width"
+                )
+            }}
+        </div>
+
+        {% for error in settings_form.expiring_soon_days.errors %}
+            <div class="field-error">
+                {{ error }}
+            </div>
+        {% endfor %}
+
+    </form>
+
+</section>
+
 <section class="panel">
 
     {% if rules %}

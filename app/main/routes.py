@@ -22,7 +22,6 @@ from app.models import (
 from . import bp
 
 
-DASHBOARD_EXPIRING_DAYS = 3
 DASHBOARD_MOVEMENT_LIMIT = 8
 
 
@@ -128,7 +127,7 @@ def index():
     expiring_limit = (
         today
         + timedelta(
-            days=DASHBOARD_EXPIRING_DAYS
+            days=household.expiring_soon_days
         )
     )
 

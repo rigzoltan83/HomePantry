@@ -9,6 +9,62 @@ OFF_PRODUCT_URL = (
     "/api/v2/product/{barcode}.json"
 )
 
+OFF_TAXONOMY_DISPLAY_URL = (
+    "https://world.openfoodfacts.org"
+    "/api/v3/taxonomy_display_tags"
+)
+
+TAXONOMY_DISPLAY_CACHE = {}
+
+class OpenFoodFactsTemporaryUnavailable(
+    Exception
+):
+    def __init__(
+        self,
+        status_code,
+        retry_after=None,
+    ):
+        self.status_code = (
+            status_code
+        )
+
+        self.retry_after = (
+            retry_after
+        )
+
+        super().__init__(
+            (
+                "Open Food Facts temporarily "
+                f"unavailable: HTTP {status_code}"
+            )
+        )
+
+
+def get_retry_after_seconds(
+    response,
+):
+    value = response.headers.get(
+        "Retry-After"
+    )
+
+    if not value:
+        return None
+
+    try:
+        seconds = int(
+            value
+        )
+    except (
+        TypeError,
+        ValueError,
+    ):
+        return None
+
+    return max(
+        0,
+        seconds,
+    )
+
 
 def _parse_quantity(
     quantity_text,
@@ -52,6 +108,177 @@ def _parse_quantity(
         quantity,
         match.group(2),
     )
+
+
+def get_taxonomy_display_tags(
+    tagtype,
+    canonical_tags,
+):
+    if (
+        not canonical_tags
+        or not isinstance(
+            canonical_tags,
+            list,
+        )
+    ):
+        return {
+            "hu": [],
+            "en": [],
+        }
+
+    canonical_tags = [
+        str(tag).strip()
+        for tag in canonical_tags
+        if str(tag).strip()
+    ]
+
+    if not canonical_tags:
+        return {
+            "hu": [],
+            "en": [],
+        }
+
+    result = {
+        "hu": [],
+        "en": [],
+    }
+
+    tags_list = ",".join(
+        canonical_tags
+    )
+
+    cache_key = (
+        str(tagtype),
+        tuple(
+            sorted(
+                canonical_tags
+            )
+        ),
+    )
+
+    cached = (
+        TAXONOMY_DISPLAY_CACHE.get(
+            cache_key
+        )
+    )
+
+    if cached is not None:
+        return {
+            "hu": list(
+                cached.get(
+                    "hu",
+                    []
+                )
+            ),
+            "en": list(
+                cached.get(
+                    "en",
+                    []
+                )
+            ),
+        }
+
+    for language in (
+        "hu",
+        "en",
+    ):
+        try:
+            response = requests.get(
+                OFF_TAXONOMY_DISPLAY_URL,
+                params={
+                    "tagtype": tagtype,
+                    "canonical_tags_list": (
+                        tags_list
+                    ),
+                    "lc": language,
+                },
+                headers={
+                    "User-Agent": (
+                        current_app.config[
+                            "OPEN_FOOD_FACTS_USER_AGENT"
+                        ]
+                    ),
+                    "Accept": (
+                        "application/json"
+                    ),
+                },
+                timeout=(
+                    2.0,
+                    4.0,
+                ),
+            )
+
+            if response.status_code in {
+                429,
+                503,
+            }:
+                raise (
+                    OpenFoodFactsTemporaryUnavailable(
+                        response.status_code,
+                        get_retry_after_seconds(
+                            response
+                        ),
+                    )
+                )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+        except (
+            OpenFoodFactsTemporaryUnavailable
+        ):
+            raise
+
+        except (
+            requests.RequestException,
+            ValueError,
+        ):
+            current_app.logger.exception(
+                (
+                    "Open Food Facts taxonomy "
+                    "lookup failed for %s / %s"
+                ),
+                tagtype,
+                language,
+            )
+
+            continue
+
+        if (
+            data.get("status")
+            != "success"
+        ):
+            continue
+
+        local_tags_list = (
+            data.get(
+                "local_tags_list"
+            )
+            or ""
+        )
+
+        result[language] = [
+            value.strip()
+            for value in (
+                local_tags_list
+                .split(",")
+            )
+            if value.strip()
+        ]
+
+    TAXONOMY_DISPLAY_CACHE[
+        cache_key
+    ] = {
+        "hu": list(
+            result["hu"]
+        ),
+        "en": list(
+            result["en"]
+        ),
+    }
+
+    return result
 
 
 def lookup_open_food_facts(
@@ -118,9 +345,27 @@ def lookup_open_food_facts(
         if response.status_code == 404:
             return None
 
+        if response.status_code in {
+            429,
+            503,
+        }:
+            raise (
+                OpenFoodFactsTemporaryUnavailable(
+                    response.status_code,
+                    get_retry_after_seconds(
+                        response
+                    ),
+                )
+            )
+
         response.raise_for_status()
 
         data = response.json()
+
+    except (
+        OpenFoodFactsTemporaryUnavailable
+    ):
+        raise
 
     except (
         requests.RequestException,
@@ -247,6 +492,62 @@ def lookup_open_food_facts(
             fallback_ingredients_text
         )
 
+    allergens_tags = (
+        product.get(
+            "allergens_tags"
+        )
+        or []
+    )
+
+    traces_tags = (
+        product.get(
+            "traces_tags"
+        )
+        or []
+    )
+
+    categories_tags = (
+        product.get(
+            "categories_tags"
+        )
+        or []
+    )
+
+    labels_tags = (
+        product.get(
+            "labels_tags"
+        )
+        or []
+    )
+
+    allergens_display = (
+        get_taxonomy_display_tags(
+            "allergens",
+            allergens_tags,
+        )
+    )
+
+    traces_display = (
+        get_taxonomy_display_tags(
+            "allergens",
+            traces_tags,
+        )
+    )
+
+    categories_display = (
+        get_taxonomy_display_tags(
+            "categories",
+            categories_tags,
+        )
+    )
+
+    labels_display = (
+        get_taxonomy_display_tags(
+            "labels",
+            labels_tags,
+        )
+    )
+
     external_data = {
         "ingredients": (
             product.get(
@@ -267,10 +568,10 @@ def lookup_open_food_facts(
             or ""
         ),
         "allergens_tags": (
-            product.get(
-                "allergens_tags"
-            )
-            or []
+            allergens_tags
+        ),
+        "allergens_display": (
+            allergens_display
         ),
         "traces": (
             product.get(
@@ -279,10 +580,10 @@ def lookup_open_food_facts(
             or ""
         ),
         "traces_tags": (
-            product.get(
-                "traces_tags"
-            )
-            or []
+            traces_tags
+        ),
+        "traces_display": (
+            traces_display
         ),
         "categories": (
             product.get(
@@ -291,10 +592,10 @@ def lookup_open_food_facts(
             or ""
         ),
         "categories_tags": (
-            product.get(
-                "categories_tags"
-            )
-            or []
+            categories_tags
+        ),
+        "categories_display": (
+            categories_display
         ),
         "labels": (
             product.get(
@@ -303,10 +604,10 @@ def lookup_open_food_facts(
             or ""
         ),
         "labels_tags": (
-            product.get(
-                "labels_tags"
-            )
-            or []
+            labels_tags
+        ),
+        "labels_display": (
+            labels_display
         ),
         "nutriments": (
             product.get(

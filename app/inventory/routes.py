@@ -28,6 +28,7 @@ from sqlalchemy import (
 from app.extensions import db
 from app.i18n import translate
 from app.models import (
+    Household,
     HouseholdMember,
     Ingredient,
     IngredientTranslation,
@@ -50,6 +51,7 @@ from .forms import (
     BatchTransferForm,
     InventoryBatchForm,
     ProductForm,
+    ExpiringSoonSettingsForm,
     StockRuleForm,
     StorageLocationForm,
 )
@@ -58,12 +60,15 @@ from .open_food_facts import (
     lookup_open_food_facts,
 )
 
+from .product_metadata import (
+    refresh_product_metadata,
+)
+
 from .product_images import (
     delete_product_image_file,
     save_product_image,
 )
 
-EXPIRING_SOON_DAYS = 3
 LOCATION_TYPES = [
     "room",
     "cabinet",
@@ -1035,6 +1040,157 @@ def products():
     return render_template(
         "inventory/products.html",
         products=products,
+    )
+
+
+@bp.get(
+    "/products/<uuid:public_id>/details"
+)
+@login_required
+def product_details(
+    public_id,
+):
+    household_id = (
+        get_current_household_id()
+    )
+
+    product = db.session.scalar(
+        select(Product)
+        .where(
+            Product.public_id
+            == public_id,
+            Product.household_id
+            == household_id,
+        )
+    )
+
+    if product is None:
+        abort(404)
+
+    language = (
+        current_user.preferred_language
+        or "hu"
+    )
+
+    if language == "hu":
+        display_name = (
+            product.name_hu
+            or product.name_en
+            or product.name
+        )
+
+        generic_name = (
+            product.generic_name_hu
+            or product.generic_name_en
+        )
+
+        ingredients_text = (
+            product.ingredients_text_hu
+            or product.ingredients_text_en
+        )
+
+    else:
+        display_name = (
+            product.name_en
+            or product.name_hu
+            or product.name
+        )
+
+        generic_name = (
+            product.generic_name_en
+            or product.generic_name_hu
+        )
+
+        ingredients_text = (
+            product.ingredients_text_en
+            or product.ingredients_text_hu
+        )
+
+    return jsonify(
+        {
+            "name": display_name,
+            "brand": product.brand,
+            "generic_name": generic_name,
+            "ingredients_text": (
+                ingredients_text
+            ),
+            "external_source": (
+                product.external_source
+            ),
+            "external_data": (
+                product.external_data
+                or {}
+            ),
+        }
+    )
+
+
+@bp.post(
+    "/products/<uuid:public_id>/refresh-metadata"
+)
+@login_required
+def product_refresh_metadata(
+    public_id,
+):
+    household_id = (
+        get_current_household_id()
+    )
+
+    product = db.session.scalar(
+        select(Product)
+        .where(
+            Product.public_id
+            == public_id,
+            Product.household_id
+            == household_id,
+        )
+    )
+
+    if product is None:
+        abort(404)
+
+    result = refresh_product_metadata(
+        product
+    )
+
+    if result["changed"]:
+        db.session.commit()
+    else:
+        db.session.rollback()
+
+    return jsonify(
+        {
+            "ok": True,
+            "found": result[
+                "found"
+            ],
+            "changed": result[
+                "changed"
+            ],
+            "changes": result[
+                "changes"
+            ],
+            "barcode": result[
+                "barcode"
+            ],
+            "reason": result[
+                "reason"
+            ],
+            "status_code": result.get(
+                "status_code"
+            ),
+            "retry_after": result.get(
+                "retry_after"
+            ),
+            "product": {
+                "public_id": str(
+                    product.public_id
+                ),
+                "name": (
+                    product.name
+                ),
+            },
+        }
     )
 
 
@@ -2792,12 +2948,71 @@ def batch_transfer(
     )
 
 
-@bp.get("/stock-rules")
+@bp.route(
+    "/stock-rules",
+    methods=[
+        "GET",
+        "POST",
+    ],
+)
 @login_required
 def stock_rules():
     household_id = (
         get_current_household_id()
     )
+
+    household = db.session.get(
+        Household,
+        household_id,
+    )
+
+    if household is None:
+        abort(404)
+
+    settings_form = (
+        ExpiringSoonSettingsForm()
+    )
+
+    settings_form.expiring_soon_days.label.text = (
+        translate(
+            "expiring_soon_days_label"
+        )
+    )
+
+    settings_form.submit.label.text = (
+        translate(
+            "save"
+        )
+    )
+
+    if not settings_form.is_submitted():
+        settings_form.expiring_soon_days.data = (
+            household.expiring_soon_days
+        )
+
+    if (
+        settings_form.validate_on_submit()
+    ):
+        household.expiring_soon_days = (
+            settings_form
+            .expiring_soon_days
+            .data
+        )
+
+        db.session.commit()
+
+        flash(
+            translate(
+                "expiring_soon_days_saved"
+            ),
+            "success",
+        )
+
+        return redirect(
+            url_for(
+                "inventory.stock_rules"
+            )
+        )
 
     rules = db.session.scalars(
         select(StockRule)
@@ -2814,6 +3029,7 @@ def stock_rules():
     return render_template(
         "inventory/stock_rules.html",
         rules=rules,
+        settings_form=settings_form,
         get_ingredient_display_name=(
             get_ingredient_display_name
         ),
@@ -3261,10 +3477,18 @@ def inventory_list():
 
     today = date.today()
 
+    household = db.session.get(
+        Household,
+        household_id,
+    )
+
+    if household is None:
+        abort(404)
+
     expiring_limit = (
         today
         + timedelta(
-            days=EXPIRING_SOON_DAYS
+            days=household.expiring_soon_days
         )
     )
 

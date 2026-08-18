@@ -315,6 +315,21 @@ class BatchTransferForm(FlaskForm):
 
     submit = SubmitField()
 
+class ExpiringSoonSettingsForm(
+    FlaskForm
+):
+    expiring_soon_days = IntegerField(
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0,
+                max=365,
+            ),
+        ],
+    )
+
+    submit = SubmitField()
+
 class StockRuleForm(FlaskForm):
     ingredient_id = SelectField(
         choices=[],

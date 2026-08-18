@@ -41,7 +41,7 @@ class Household(db.Model):
     expiring_soon_days = db.Column(
         db.Integer,
         nullable=False,
-        default=5,
+        default=3,
     )
 
     is_active = db.Column(

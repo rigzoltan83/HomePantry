@@ -3,6 +3,72 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"expiring_soon_settings_title": (
+    "Szavatossági figyelmeztetés"
+),
+"expiring_soon_settings_description": (
+    "Ennyi nappal a lejárat előtt kezdjen figyelmeztetni a rendszer."
+),
+"expiring_soon_days_label": (
+    "Figyelmeztetés a lejárat előtt"
+),
+"expiring_soon_days_saved": (
+    "A szavatossági figyelmeztetés beállítása elmentve."
+),
+"days": (
+    "nap"
+),
+"product_refresh_metadata": (
+    "OFF-adatok frissítése"
+),
+"product_details_ingredients": (
+    "Összetevők"
+),
+"product_details_allergens": (
+    "Allergének"
+),
+"product_details_traces": (
+    "Nyomokban tartalmazhat"
+),
+"product_details_categories": (
+    "Kategóriák"
+),
+"product_details_labels": (
+    "Címkék"
+),
+"product_details_nutrition_100g": (
+    "Tápérték 100 g-ban"
+),
+"product_details_energy": (
+    "Energia"
+),
+"product_details_fat": (
+    "Zsír"
+),
+"product_details_saturated_fat": (
+    "ebből telített zsírsavak"
+),
+"product_details_carbohydrates": (
+    "Szénhidrát"
+),
+"product_details_sugars": (
+    "ebből cukrok"
+),
+"product_details_proteins": (
+    "Fehérje"
+),
+"product_details_salt": (
+    "Só"
+),
+"product_details_load_error": (
+    "A részletek betöltése nem sikerült."
+),
+"product_details_loading": (
+    "Részletek betöltése..."
+),
+"product_details": (
+    "Részletek"
+),
         "product_images_pending": (
             "Feltöltendő képek"
         ),
@@ -62,9 +128,9 @@ TRANSLATIONS = {
         "dashboard_expired": "Lejárt",
         "dashboard_low_stock": "Minimum alatt",
         "dashboard_ingredients": "alapanyag",
-        "dashboard_next_three_days": (
-            "A következő 3 napban"
-        ),
+"dashboard_next_days": (
+    "A következő {days} napban"
+),
         "dashboard_needs_attention": (
             "Figyelmet igényel"
         ),
@@ -556,6 +622,72 @@ TRANSLATIONS = {
     },
 
     "en": {
+"expiring_soon_settings_title": (
+    "Expiration warning"
+),
+"expiring_soon_settings_description": (
+    "Number of days before expiration when warnings should begin."
+),
+"expiring_soon_days_label": (
+    "Warn before expiration"
+),
+"expiring_soon_days_saved": (
+    "Expiration warning setting saved."
+),
+"days": (
+    "days"
+),
+"product_refresh_metadata": (
+    "Refresh OFF data"
+),
+"product_details_ingredients": (
+    "Ingredients"
+),
+"product_details_allergens": (
+    "Allergens"
+),
+"product_details_traces": (
+    "May contain traces of"
+),
+"product_details_categories": (
+    "Categories"
+),
+"product_details_labels": (
+    "Labels"
+),
+"product_details_nutrition_100g": (
+    "Nutrition per 100 g"
+),
+"product_details_energy": (
+    "Energy"
+),
+"product_details_fat": (
+    "Fat"
+),
+"product_details_saturated_fat": (
+    "of which saturates"
+),
+"product_details_carbohydrates": (
+    "Carbohydrate"
+),
+"product_details_sugars": (
+    "of which sugars"
+),
+"product_details_proteins": (
+    "Protein"
+),
+"product_details_salt": (
+    "Salt"
+),
+"product_details_load_error": (
+    "Failed to load product details."
+),
+"product_details_loading": (
+    "Loading details..."
+),
+"product_details": (
+    "Details"
+),
         "product_images_pending": (
             "Images to upload"
         ),
@@ -614,9 +746,9 @@ TRANSLATIONS = {
         "dashboard_expired": "Expired",
         "dashboard_low_stock": "Below minimum",
         "dashboard_ingredients": "ingredients",
-        "dashboard_next_three_days": (
-            "Within the next 3 days"
-        ),
+"dashboard_next_days": (
+    "Within the next {days} days"
+),
         "dashboard_needs_attention": (
             "Needs attention"
         ),
@@ -1115,12 +1247,18 @@ def get_language():
     return "hu"
 
 
-def translate(key):
+def translate(
+    key,
+    **kwargs,
+):
     language = get_language()
 
-    return (
+    text = (
         TRANSLATIONS
-        .get(language, TRANSLATIONS["hu"])
+        .get(
+            language,
+            TRANSLATIONS["hu"],
+        )
         .get(
             key,
             TRANSLATIONS["en"].get(
@@ -1129,3 +1267,16 @@ def translate(key):
             ),
         )
     )
+
+    if not kwargs:
+        return text
+
+    try:
+        return text.format(
+            **kwargs
+        )
+    except (
+        KeyError,
+        ValueError,
+    ):
+        return text
