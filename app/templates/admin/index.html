@@ -93,6 +93,25 @@
         class="admin-dashboard-card"
         href="{{
             url_for(
+                'admin.recipe_tags'
+            )
+        }}"
+    >
+        <div>
+            <h2>
+                {{ t("recipe_tag_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("recipe_tag_description") }}
+            </p>
+        </div>
+    </a>
+
+    <a
+        class="admin-dashboard-card"
+        href="{{
+            url_for(
                 'admin.data_management'
             )
         }}"

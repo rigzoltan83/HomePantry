@@ -54,6 +54,7 @@ def create_app():
     from .auth import bp as auth_bp
     from .inventory import bp as inventory_bp
     from .main import bp as main_bp
+    from .recipes import bp as recipes_bp
 
     app.register_blueprint(
         auth_bp,
@@ -78,6 +79,11 @@ def create_app():
     app.register_blueprint(
         inventory_bp,
         url_prefix="/inventory",
+    )
+
+    app.register_blueprint(
+        recipes_bp,
+        url_prefix="/recipes",
     )
 
     @login_manager.user_loader

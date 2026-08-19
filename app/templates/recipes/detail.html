@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ recipe.title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+
+    <div>
+
+        <h1>
+            {{ recipe.title }}
+        </h1>
+
+        {% if recipe.tags %}
+
+            <div class="recipe-detail-tags">
+
+                {% for tag in recipe.tags %}
+
+                    <span class="recipe-tag">
+                        {{ tag.name }}
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <div class="row-actions">
+
+        <a
+            href="{{
+                url_for(
+                    'recipes.edit',
+                    public_id=recipe.public_id
+                )
+            }}"
+        >
+            {{ t("edit") }}
+        </a>
+
+    </div>
+
+</div>
+
+
+{% if
+    recipe.difficulty
+    or recipe.servings
+    or recipe.prep_time_minutes
+    or recipe.cook_time_minutes
+    or recipe.total_time_minutes
+%}
+
+<section class="panel recipe-detail-meta">
+
+    {% if recipe.difficulty %}
+
+        <div>
+            <strong>
+                {{ t("recipe_field_difficulty") }}
+            </strong>
+
+            <span>
+                {{
+                    t(
+                        "recipe_difficulty_"
+                        ~ recipe.difficulty
+                    )
+                }}
+            </span>
+        </div>
+
+    {% endif %}
+
+
+    {% if recipe.servings %}
+
+        <div>
+            <strong>
+                {{ t("recipe_field_servings") }}
+            </strong>
+
+            <span>
+                {{ recipe.servings }}
+            </span>
+        </div>
+
+    {% endif %}
+
+
+    {% if recipe.prep_time_minutes %}
+
+        <div>
+            <strong>
+                {{ t("recipe_field_prep_time") }}
+            </strong>
+
+            <span>
+                {{ recipe.prep_time_minutes }}
+                {{ t("recipe_minutes") }}
+            </span>
+        </div>
+
+    {% endif %}
+
+
+    {% if recipe.cook_time_minutes %}
+
+        <div>
+            <strong>
+                {{ t("recipe_field_cook_time") }}
+            </strong>
+
+            <span>
+                {{ recipe.cook_time_minutes }}
+                {{ t("recipe_minutes") }}
+            </span>
+        </div>
+
+    {% endif %}
+
+
+    {% if recipe.total_time_minutes %}
+
+        <div>
+            <strong>
+                {{ t("recipe_field_total_time") }}
+            </strong>
+
+            <span>
+                {{ recipe.total_time_minutes }}
+                {{ t("recipe_minutes") }}
+            </span>
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endif %}
+
+
+<section class="panel">
+
+    <h2>
+        {{ t("recipe_ingredients_title") }}
+    </h2>
+
+    <div class="recipe-detail-ingredients">
+
+        {% for row in ingredient_rows %}
+
+            {% set item = row.item %}
+
+            <div class="recipe-detail-ingredient">
+
+                <span
+                    class="
+                        recipe-availability
+                        {% if row.is_available %}
+                            is-available
+                        {% else %}
+                            is-missing
+                        {% endif %}
+                    "
+                >
+                    {% if row.is_available %}
+                        ✓
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+
+                <span>
+
+                    {% if item.quantity is not none %}
+                        {{
+                            "%g"
+                            | format(
+                                item.quantity
+                                | float
+                            )
+                        }}
+                    {% endif %}
+
+                    {% if item.unit %}
+                        {{ item.unit.symbol }}
+                    {% elif item.unit_text %}
+                        {{ item.unit_text }}
+                    {% endif %}
+
+                    {{ item.original_name }}
+
+                    {% if item.note %}
+                        <span class="muted">
+                            — {{ item.note }}
+                        </span>
+                    {% endif %}
+
+                </span>
+
+            </div>
+
+        {% else %}
+
+            <p class="muted">
+                {{ t("recipe_no_ingredients") }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<section class="panel">
+
+    <h2>
+        {{ t("recipe_field_instructions") }}
+    </h2>
+
+    {% if recipe.instructions_text %}
+
+        <div class="recipe-instructions">
+            {{
+                recipe.instructions_text
+                | e
+                | replace(
+                    "\n",
+                    "<br>"
+                )
+                | safe
+            }}
+        </div>
+
+    {% else %}
+
+        <p class="muted">
+            {{ t("recipe_no_instructions") }}
+        </p>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

@@ -25,6 +25,7 @@ from .product import (
 from .recipe import (
     Recipe,
     RecipeIngredient,
+    RecipeTag,
 )
 from .storage_location import (
     StorageLocation,
@@ -60,6 +61,7 @@ __all__ = [
     "ProductImage",
     "Recipe",
     "RecipeIngredient",
+    "RecipeTag",
     "StorageLocation",
     "StockRule",
     "Unit",

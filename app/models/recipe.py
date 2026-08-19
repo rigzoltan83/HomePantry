@@ -4,6 +4,30 @@ from sqlalchemy import func
 
 from app.extensions import db
 
+recipe_tags = db.Table(
+    "recipe_tags",
+
+    db.Column(
+        "recipe_id",
+        db.Integer,
+        db.ForeignKey(
+            "recipes.id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    ),
+
+    db.Column(
+        "tag_id",
+        db.Integer,
+        db.ForeignKey(
+            "recipe_tag_definitions.id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    ),
+)
+
 
 class Recipe(db.Model):
     __tablename__ = "recipes"
@@ -142,6 +166,13 @@ class Recipe(db.Model):
         ),
     )
 
+    tags = db.relationship(
+        "RecipeTag",
+        secondary=recipe_tags,
+        back_populates="recipes",
+        order_by="RecipeTag.sort_order, RecipeTag.name",
+    )
+
 
 class RecipeIngredient(db.Model):
     __tablename__ = "recipe_ingredients"
@@ -227,4 +258,49 @@ class RecipeIngredient(db.Model):
 
     unit = db.relationship(
         "Unit",
+    )
+
+class RecipeTag(db.Model):
+    __tablename__ = "recipe_tag_definitions"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
+
+    key = db.Column(
+        db.String(80),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
+    name = db.Column(
+        db.String(120),
+        nullable=False,
+    )
+
+    group_name = db.Column(
+        db.String(50),
+        nullable=False,
+        index=True,
+    )
+
+    sort_order = db.Column(
+        db.Integer,
+        nullable=False,
+        default=100,
+    )
+
+    is_active = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=True,
+        index=True,
+    )
+
+    recipes = db.relationship(
+        "Recipe",
+        secondary=recipe_tags,
+        back_populates="tags",
     )

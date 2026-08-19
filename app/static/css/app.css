@@ -2211,3 +2211,257 @@ body.modal-open {
         flex: 0 0 auto;
     }
 }
+
+.recipe-instructions-input {
+    width: 100%;
+    min-height: 320px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.recipe-tag-group + .recipe-tag-group {
+    margin-top: 28px;
+}
+
+.recipe-tag-group h2 {
+    margin-bottom: 12px;
+}
+
+.recipe-tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recipe-tag-selector {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.recipe-tag-groups {
+    display: grid;
+    gap: 20px;
+}
+
+.recipe-tag-select-group h3 {
+    margin: 0 0 10px;
+}
+
+.recipe-tag-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.recipe-tag-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border: 1px solid #d6d6d6;
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.recipe-tag-checkbox input {
+    margin: 0;
+}
+
+.recipe-tag-checkbox:has(input:checked) {
+    font-weight: 600;
+    border-width: 2px;
+}
+
+.recipe-ingredients-panel {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.recipe-ingredients-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.recipe-ingredients-heading h2 {
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.recipe-ingredient-quantity {
+    flex: 0 0 110px;
+}
+
+.recipe-ingredient-unit {
+    flex: 0 0 180px;
+}
+
+.recipe-ingredient-quantity input,
+.recipe-ingredient-unit input,
+.recipe-ingredient-unit select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .recipe-ingredient-quantity,
+    .recipe-ingredient-unit {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
+
+.recipe-ingredient-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recipe-ingredient-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.recipe-ingredient-search {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.recipe-ingredient-name {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .recipe-ingredients-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .recipe-ingredient-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .recipe-ingredient-row
+    .js-recipe-ingredient-remove {
+        align-self: flex-start;
+    }
+}
+
+.recipe-detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.recipe-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.recipe-detail-meta > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.recipe-detail-ingredients {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recipe-detail-ingredient {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.recipe-availability {
+    width: 20px;
+    flex: 0 0 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.recipe-availability.is-available {
+    font-weight: 800;
+}
+
+.recipe-availability.is-missing {
+    opacity: 0.55;
+}
+
+.recipe-instructions {
+    line-height: 1.65;
+}
+
+.recipe-search-panel {
+    margin-bottom: 20px;
+}
+
+.recipe-search-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 2fr)
+        minmax(150px, 1fr)
+        minmax(170px, 1fr);
+    gap: 14px;
+}
+
+.recipe-search-tags {
+    display: grid;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.recipe-search-options {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+.recipe-availability-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.recipe-list-row {
+    gap: 20px;
+}
+
+.recipe-list-main {
+    min-width: 0;
+}
+
+.recipe-list-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.recipe-match {
+    margin-top: 7px;
+    font-size: 0.9rem;
+}
+
+.recipe-match-complete {
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .recipe-search-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ page_title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+
+    <h1>
+        {{ page_title }}
+    </h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            {{ form.name.label }}
+            {{ form.name() }}
+
+            {% for error in form.name.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.key.label }}
+            {{ form.key() }}
+
+            {% for error in form.key.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.group_name.label }}
+            {{ form.group_name() }}
+        </div>
+
+        <div class="field">
+            {{ form.sort_order.label }}
+            {{ form.sort_order() }}
+        </div>
+
+        <div class="field">
+            <label>
+                {{ form.is_active() }}
+                {{ form.is_active.label.text }}
+            </label>
+        </div>
+
+        <div class="form-actions">
+
+            {{
+                form.submit(
+                    class="primary-button auto-width"
+                )
+            }}
+
+            <a
+                href="{{
+                    url_for(
+                        'admin.recipe_tags'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

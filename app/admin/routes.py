@@ -37,6 +37,7 @@ from app.models import (
     InventoryBatch,
     Product,
     ProductBarcode,
+    RecipeTag,
     StorageLocation,
     Unit,
     User,
@@ -48,6 +49,10 @@ from .forms import (
     IngredientAdminForm,
     NewHouseholdUserForm,
     ProfileForm,
+)
+
+from app.recipes.forms import (
+    RecipeTagForm,
 )
 
 
@@ -2029,4 +2034,289 @@ def export_products():
     return csv_response(
         "homepantry-products.csv",
         rows,
+    )
+
+def configure_recipe_tag_form(
+    form,
+):
+    form.name.label.text = translate(
+        "recipe_tag_name"
+    )
+
+    form.key.label.text = translate(
+        "recipe_tag_key"
+    )
+
+    form.group_name.label.text = translate(
+        "recipe_tag_group"
+    )
+
+    form.sort_order.label.text = translate(
+        "recipe_tag_sort_order"
+    )
+
+    form.is_active.label.text = translate(
+        "admin_active"
+    )
+
+    form.submit.label.text = translate(
+        "save"
+    )
+
+    form.group_name.choices = [
+        (
+            "food_type",
+            translate(
+                "recipe_tag_group_food_type"
+            ),
+        ),
+        (
+            "cuisine",
+            translate(
+                "recipe_tag_group_cuisine"
+            ),
+        ),
+        (
+            "diet",
+            translate(
+                "recipe_tag_group_diet"
+            ),
+        ),
+        (
+            "other",
+            translate(
+                "recipe_tag_group_other"
+            ),
+        ),
+    ]
+
+
+@bp.get("/recipe-tags")
+@login_required
+def recipe_tags():
+    get_admin_membership()
+
+    tags = db.session.scalars(
+        select(RecipeTag)
+        .order_by(
+            RecipeTag.group_name,
+            RecipeTag.sort_order,
+            RecipeTag.name,
+            RecipeTag.id,
+        )
+    ).all()
+
+    return render_template(
+        "admin/recipe_tags.html",
+        tags=tags,
+    )
+
+
+@bp.route(
+    "/recipe-tags/new",
+    methods=[
+        "GET",
+        "POST",
+    ],
+)
+@login_required
+def recipe_tag_new():
+    get_admin_membership()
+
+    form = RecipeTagForm()
+
+    configure_recipe_tag_form(
+        form
+    )
+
+    if form.validate_on_submit():
+        key = (
+            form.key.data
+            .strip()
+            .lower()
+        )
+
+        existing = db.session.scalar(
+            select(RecipeTag)
+            .where(
+                RecipeTag.key
+                == key
+            )
+        )
+
+        if existing is not None:
+            form.key.errors.append(
+                translate(
+                    "recipe_tag_key_exists"
+                )
+            )
+        else:
+            tag = RecipeTag(
+                key=key,
+                name=(
+                    form.name.data
+                    .strip()
+                ),
+                group_name=(
+                    form.group_name.data
+                ),
+                sort_order=(
+                    form.sort_order.data
+                ),
+                is_active=(
+                    form.is_active.data
+                ),
+            )
+
+            db.session.add(
+                tag
+            )
+
+            db.session.commit()
+
+            flash(
+                translate(
+                    "recipe_tag_created"
+                ),
+                "success",
+            )
+
+            return redirect(
+                url_for(
+                    "admin.recipe_tags"
+                )
+            )
+
+    return render_template(
+        "admin/recipe_tag_form.html",
+        form=form,
+        page_title=translate(
+            "recipe_tag_new"
+        ),
+    )
+
+
+@bp.route(
+    "/recipe-tags/<int:tag_id>/edit",
+    methods=[
+        "GET",
+        "POST",
+    ],
+)
+@login_required
+def recipe_tag_edit(
+    tag_id,
+):
+    get_admin_membership()
+
+    tag = db.session.get(
+        RecipeTag,
+        tag_id,
+    )
+
+    if tag is None:
+        abort(404)
+
+    form = RecipeTagForm(
+        obj=tag
+    )
+
+    configure_recipe_tag_form(
+        form
+    )
+
+    if form.validate_on_submit():
+        key = (
+            form.key.data
+            .strip()
+            .lower()
+        )
+
+        conflict = db.session.scalar(
+            select(RecipeTag)
+            .where(
+                RecipeTag.id
+                != tag.id,
+                RecipeTag.key
+                == key,
+            )
+        )
+
+        if conflict is not None:
+            form.key.errors.append(
+                translate(
+                    "recipe_tag_key_exists"
+                )
+            )
+        else:
+            tag.key = key
+
+            tag.name = (
+                form.name.data
+                .strip()
+            )
+
+            tag.group_name = (
+                form.group_name.data
+            )
+
+            tag.sort_order = (
+                form.sort_order.data
+            )
+
+            tag.is_active = (
+                form.is_active.data
+            )
+
+            db.session.commit()
+
+            flash(
+                translate(
+                    "recipe_tag_updated"
+                ),
+                "success",
+            )
+
+            return redirect(
+                url_for(
+                    "admin.recipe_tags"
+                )
+            )
+
+    return render_template(
+        "admin/recipe_tag_form.html",
+        form=form,
+        page_title=translate(
+            "recipe_tag_edit"
+        ),
+    )
+
+
+@bp.post(
+    "/recipe-tags/<int:tag_id>/toggle"
+)
+@login_required
+def recipe_tag_toggle(
+    tag_id,
+):
+    get_admin_membership()
+
+    tag = db.session.get(
+        RecipeTag,
+        tag_id,
+    )
+
+    if tag is None:
+        abort(404)
+
+    tag.is_active = (
+        not tag.is_active
+    )
+
+    db.session.commit()
+
+    return redirect(
+        url_for(
+            "admin.recipe_tags"
+        )
     )

@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ page_title }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+
+    <h1>
+        {{ page_title }}
+    </h1>
+
+    <form
+        method="post"
+        novalidate
+    >
+        {{ form.hidden_tag() }}
+
+        <div class="field">
+            {{ form.title.label }}
+            {{ form.title() }}
+
+            {% for error in form.title.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="field">
+                {{ form.difficulty.label }}
+                {{ form.difficulty() }}
+            </div>
+
+            <div class="field">
+                {{ form.servings.label }}
+                {{ form.servings() }}
+            </div>
+
+            <div class="field">
+                {{ form.prep_time_minutes.label }}
+                {{ form.prep_time_minutes() }}
+            </div>
+
+            <div class="field">
+                {{ form.cook_time_minutes.label }}
+                {{ form.cook_time_minutes() }}
+            </div>
+
+        </div>
+
+<section class="panel recipe-tag-selector">
+
+    <h2>
+        {{ t("recipe_tags_field") }}
+    </h2>
+
+    <p class="muted">
+        {{ t("recipe_tags_help") }}
+    </p>
+
+    <div class="recipe-tag-groups">
+
+        {% set groups = [
+            (
+                "food_type",
+                t("recipe_tag_group_food_type")
+            ),
+            (
+                "cuisine",
+                t("recipe_tag_group_cuisine")
+            ),
+            (
+                "diet",
+                t("recipe_tag_group_diet")
+            ),
+            (
+                "other",
+                t("recipe_tag_group_other")
+            )
+        ] %}
+
+        {% for group_key, group_label in groups %}
+
+            {% set tags =
+                tag_groups.get(
+                    group_key,
+                    []
+                )
+            %}
+
+            {% if tags %}
+
+                <div class="recipe-tag-select-group">
+
+                    <h3>
+                        {{ group_label }}
+                    </h3>
+
+                    <div class="recipe-tag-checkboxes">
+
+                        {% for tag in tags %}
+
+                            <label
+                                class="recipe-tag-checkbox"
+                            >
+
+<input
+    type="checkbox"
+    name="recipe_tag_ids"
+    value="{{ tag.id }}"
+    {% if
+        selected_tag_ids is defined
+        and tag.id in selected_tag_ids
+    %}
+        checked
+    {% endif %}
+>
+                                <span>
+                                    {{ tag.name }}
+                                </span>
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+<section
+    class="panel recipe-ingredients-panel"
+    id="recipe-ingredients-panel"
+    data-search-url="{{
+        url_for(
+            'recipes.ingredient_search_api'
+        )
+    }}"
+    data-units-url="{{
+        url_for(
+            'inventory.ingredient_units_api'
+        )
+    }}"
+>
+
+    <div class="recipe-ingredients-heading">
+
+        <div>
+            <h2>
+                {{ t("recipe_ingredients_title") }}
+            </h2>
+
+            <p class="muted">
+                {{ t("recipe_ingredients_help") }}
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="secondary-button auto-width"
+            id="recipe-add-ingredient"
+        >
+            + {{ t("recipe_ingredient_add") }}
+        </button>
+
+    </div>
+
+    <div
+        id="recipe-ingredient-rows"
+        class="recipe-ingredient-rows"
+    ></div>
+
+</section>
+
+<script
+    type="application/json"
+    id="recipe-initial-ingredients"
+>
+{{
+    recipe_ingredient_rows
+    | default([])
+    | tojson
+}}
+</script>
+
+<template id="recipe-ingredient-row-template">
+
+<div class="recipe-ingredient-row">
+
+    <div class="recipe-ingredient-search">
+
+        <input
+            type="hidden"
+            class="js-recipe-ingredient-id"
+            name="ingredient_id"
+            value=""
+        >
+
+        <input
+            type="text"
+            class="
+                recipe-ingredient-name
+                js-recipe-ingredient-name
+            "
+            name="ingredient_name"
+            autocomplete="off"
+            placeholder="{{
+                t(
+                    'recipe_ingredient_placeholder'
+                )
+            }}"
+        >
+
+        <div
+            class="
+                autocomplete-results
+                js-recipe-ingredient-results
+            "
+            hidden
+        ></div>
+
+        <div
+            class="
+                field-help
+                js-recipe-ingredient-status
+            "
+        ></div>
+
+    </div>
+
+    <div class="recipe-ingredient-quantity">
+
+        <input
+            type="number"
+            name="ingredient_quantity"
+            class="js-recipe-ingredient-quantity"
+            min="0"
+            step="any"
+            inputmode="decimal"
+            placeholder="{{
+                t(
+                    'recipe_ingredient_quantity'
+                )
+            }}"
+        >
+
+    </div>
+
+    <div class="recipe-ingredient-unit">
+
+        <select
+            name="ingredient_unit_id"
+            class="js-recipe-ingredient-unit-select"
+            hidden
+        >
+            <option value="0">
+                —
+            </option>
+        </select>
+
+        <input
+            type="text"
+            name="ingredient_unit_text"
+            class="js-recipe-ingredient-unit-text"
+            placeholder="{{
+                t(
+                    'recipe_ingredient_unit'
+                )
+            }}"
+            maxlength="80"
+        >
+
+    </div>
+
+    <button
+        type="button"
+        class="
+            link-button
+            danger-link
+            js-recipe-ingredient-remove
+        "
+    >
+        {{ t("remove") }}
+    </button>
+
+</div>
+
+</template>
+
+        <div class="field">
+
+            {{ form.instructions_text.label }}
+
+{{
+    form.instructions_text(
+        rows=18,
+        class="recipe-instructions-input"
+    )
+}}
+
+        </div>
+
+        <div class="form-actions">
+
+            {{
+                form.submit(
+                    class="primary-button auto-width"
+                )
+            }}
+
+            <a
+                href="{{
+                    url_for(
+                        'recipes.index'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

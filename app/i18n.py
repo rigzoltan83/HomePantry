@@ -3,6 +3,115 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_search": "Keresés",
+"recipe_search_placeholder": (
+    "Recept, hozzávaló vagy címke..."
+),
+"recipe_filter_any": "Bármilyen",
+"recipe_filter_max_time": (
+    "Maximum elkészítési idő"
+),
+"recipe_filter_only_available": (
+    "Csak azok, amelyekhez minden alapanyag megvan"
+),
+"recipe_filter_apply": "Szűrés",
+"recipe_filter_clear": "Szűrők törlése",
+"recipe_ingredients_available": (
+    "alapanyag megvan"
+),
+"recipe_search_no_results": (
+    "A megadott feltételekkel nincs találat."
+),
+"recipe_field_total_time": "Összesen",
+"recipe_no_ingredients": (
+    "Ehhez a recepthez nincs hozzávaló megadva."
+),
+"recipe_no_instructions": (
+    "Nincs elkészítési leírás megadva."
+),
+"recipe_ingredient_quantity": "Mennyiség",
+"recipe_ingredient_unit": "Mértékegység",
+"recipe_ingredients_help": (
+    "Add meg a recept hozzávalóit. "
+    "Ha találunk egyező saját alapanyagot, "
+    "összepárosíthatod vele."
+),
+"recipe_ingredient_add": "Hozzávaló",
+"recipe_ingredient_placeholder": (
+    "Kezdd el beírni az alapanyag nevét..."
+),
+"recipe_edit_title": "Recept szerkesztése",
+"recipe_updated": (
+    "A recept módosításai elmentve."
+),
+"recipe_tags_field": "Receptcímkék",
+"recipe_tags_help": (
+    "Jelöld meg mindazt, ami jellemző a receptre."
+),
+"recipe_tag_title": "Receptcímkék",
+"recipe_tag_description": (
+    "A receptekhez használható címkék kezelése."
+),
+"recipe_tag_new": "Új receptcímke",
+"recipe_tag_edit": "Receptcímke szerkesztése",
+"recipe_tag_name": "Név",
+"recipe_tag_key": "Kulcs",
+"recipe_tag_group": "Csoport",
+"recipe_tag_sort_order": "Sorrend",
+"recipe_tag_group_food_type": "Ételtípus",
+"recipe_tag_group_cuisine": "Konyha",
+"recipe_tag_group_diet": "Étrend",
+"recipe_tag_group_other": "Egyéb",
+"recipe_tag_key_exists": (
+    "Már létezik ilyen kulcsú receptcímke."
+),
+"recipe_tag_created": (
+    "A receptcímke létrejött."
+),
+"recipe_tag_updated": (
+    "A receptcímke módosítva."
+),
+"recipe_tag_empty": (
+    "Még nincs receptcímke."
+),
+"recipe_new_title": "Új recept",
+"recipe_created": (
+    "A recept sikeresen elmentve."
+),
+"recipe_field_title": "Recept neve",
+"recipe_field_description": "Leírás",
+"recipe_field_cuisine": "Konyha",
+"recipe_field_category": "Kategória",
+"recipe_field_difficulty": "Nehézség",
+"recipe_field_servings": "Adag",
+"recipe_field_prep_time": (
+    "Előkészítési idő (perc)"
+),
+"recipe_field_cook_time": (
+    "Főzési / sütési idő (perc)"
+),
+"recipe_field_instructions": "Elkészítés",
+"recipe_difficulty_unspecified": (
+    "Nincs megadva"
+),
+"recipe_difficulty_easy": "Könnyű",
+"recipe_difficulty_medium": "Közepes",
+"recipe_difficulty_hard": "Nehéz",
+"recipe_ingredients_title": "Hozzávalók",
+"recipe_ingredients_placeholder": (
+    "A hozzávalók kezelése a következő lépésben kerül ide."
+),
+"recipe_minutes": "perc",
+"dashboard_quick_recipes_help": (
+    "Saját receptek és receptötletek."
+),
+"recipe_title": "Receptek",
+"recipe_description": (
+    "Saját receptek kezelése és receptötletek keresése."
+),
+"recipe_empty": (
+    "Még nincs elmentett recept."
+),
 "admin_data_management_title": (
     "Adatkezelés"
 ),
@@ -640,6 +749,114 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_search": "Search",
+"recipe_search_placeholder": (
+    "Recipe, ingredient or tag..."
+),
+"recipe_filter_any": "Any",
+"recipe_filter_max_time": (
+    "Maximum preparation time"
+),
+"recipe_filter_only_available": (
+    "Only recipes with all ingredients available"
+),
+"recipe_filter_apply": "Filter",
+"recipe_filter_clear": "Clear filters",
+"recipe_ingredients_available": (
+    "ingredients available"
+),
+"recipe_search_no_results": (
+    "No recipes match the selected filters."
+),
+"recipe_field_total_time": "Total time",
+"recipe_no_ingredients": (
+    "No ingredients have been added to this recipe."
+),
+"recipe_no_instructions": (
+    "No preparation instructions have been provided."
+),
+"recipe_ingredient_quantity": "Quantity",
+"recipe_ingredient_unit": "Unit",
+"recipe_ingredients_help": (
+    "Add the recipe ingredients. "
+    "Matching pantry ingredients can be linked."
+),
+"recipe_ingredient_add": "Ingredient",
+"recipe_ingredient_placeholder": (
+    "Start typing an ingredient name..."
+),
+"recipe_edit_title": "Edit recipe",
+"recipe_updated": (
+    "Recipe changes saved."
+),
+"recipe_tags_field": "Recipe tags",
+"recipe_tags_help": (
+    "Select all tags that describe this recipe."
+),
+"recipe_tag_title": "Recipe tags",
+"recipe_tag_description": (
+    "Manage tags available for recipes."
+),
+"recipe_tag_new": "New recipe tag",
+"recipe_tag_edit": "Edit recipe tag",
+"recipe_tag_name": "Name",
+"recipe_tag_key": "Key",
+"recipe_tag_group": "Group",
+"recipe_tag_sort_order": "Sort order",
+"recipe_tag_group_food_type": "Food type",
+"recipe_tag_group_cuisine": "Cuisine",
+"recipe_tag_group_diet": "Diet",
+"recipe_tag_group_other": "Other",
+"recipe_tag_key_exists": (
+    "A recipe tag with this key already exists."
+),
+"recipe_tag_created": (
+    "Recipe tag created."
+),
+"recipe_tag_updated": (
+    "Recipe tag updated."
+),
+"recipe_tag_empty": (
+    "No recipe tags yet."
+),
+"recipe_new_title": "New recipe",
+"recipe_created": (
+    "Recipe saved successfully."
+),
+"recipe_field_title": "Recipe name",
+"recipe_field_description": "Description",
+"recipe_field_cuisine": "Cuisine",
+"recipe_field_category": "Category",
+"recipe_field_difficulty": "Difficulty",
+"recipe_field_servings": "Servings",
+"recipe_field_prep_time": (
+    "Preparation time (minutes)"
+),
+"recipe_field_cook_time": (
+    "Cooking / baking time (minutes)"
+),
+"recipe_field_instructions": "Instructions",
+"recipe_difficulty_unspecified": (
+    "Not specified"
+),
+"recipe_difficulty_easy": "Easy",
+"recipe_difficulty_medium": "Medium",
+"recipe_difficulty_hard": "Hard",
+"recipe_ingredients_title": "Ingredients",
+"recipe_ingredients_placeholder": (
+    "Ingredient management will be added here in the next step."
+),
+"recipe_minutes": "min",
+"dashboard_quick_recipes_help": (
+    "Saved recipes and recipe ideas."
+),
+"recipe_title": "Recipes",
+"recipe_description": (
+    "Manage saved recipes and search for recipe ideas."
+),
+"recipe_empty": (
+    "No saved recipes yet."
+),
 "admin_data_management_title": (
     "Data management"
 ),

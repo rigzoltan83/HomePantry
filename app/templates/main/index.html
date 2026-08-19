@@ -548,6 +548,23 @@
                 </span>
             </a>
 
+            <a
+                class="dashboard-quick-action"
+                href="{{
+                    url_for(
+                        'recipes.index'
+                    )
+                }}"
+            >
+                <strong>
+                    {{ t("recipe_title") }}
+                </strong>
+
+                <span>
+                    {{ t("dashboard_quick_recipes_help") }}
+                </span>
+            </a>
+
         </div>
 
     </article>

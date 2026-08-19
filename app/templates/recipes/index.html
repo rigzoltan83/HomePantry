@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("recipe_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+
+    <div>
+        <h1>
+            {{ t("recipe_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("recipe_description") }}
+        </p>
+    </div>
+
+    <a
+        class="primary-link"
+        href="{{
+            url_for(
+                'recipes.new'
+            )
+        }}"
+    >
+        + {{ t("recipe_new_title") }}
+    </a>
+
+</div>
+
+
+<section class="panel recipe-search-panel">
+
+    <form
+        method="get"
+        action="{{
+            url_for(
+                'recipes.index'
+            )
+        }}"
+    >
+
+        <div class="recipe-search-grid">
+
+            <div class="field">
+
+                <label for="recipe-search-q">
+                    {{ t("recipe_search") }}
+                </label>
+
+                <input
+                    id="recipe-search-q"
+                    type="search"
+                    name="q"
+                    value="{{ search_text }}"
+                    placeholder="{{
+                        t(
+                            'recipe_search_placeholder'
+                        )
+                    }}"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="recipe-difficulty-filter">
+                    {{ t("recipe_field_difficulty") }}
+                </label>
+
+                <select
+                    id="recipe-difficulty-filter"
+                    name="difficulty"
+                >
+                    <option value="">
+                        {{ t("recipe_filter_any") }}
+                    </option>
+
+                    <option
+                        value="easy"
+                        {% if difficulty == "easy" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ t("recipe_difficulty_easy") }}
+                    </option>
+
+                    <option
+                        value="medium"
+                        {% if difficulty == "medium" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ t("recipe_difficulty_medium") }}
+                    </option>
+
+                    <option
+                        value="hard"
+                        {% if difficulty == "hard" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ t("recipe_difficulty_hard") }}
+                    </option>
+                </select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="recipe-max-time-filter">
+                    {{ t("recipe_filter_max_time") }}
+                </label>
+
+                <select
+                    id="recipe-max-time-filter"
+                    name="max_time"
+                >
+                    <option value="">
+                        {{ t("recipe_filter_any") }}
+                    </option>
+
+                    {% for minutes in [15, 30, 45, 60, 90, 120] %}
+
+                        <option
+                            value="{{ minutes }}"
+                            {% if max_time == minutes %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ minutes }}
+                            {{ t("recipe_minutes") }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="recipe-search-tags">
+
+            {% set groups = [
+                (
+                    "food_type",
+                    t("recipe_tag_group_food_type")
+                ),
+                (
+                    "cuisine",
+                    t("recipe_tag_group_cuisine")
+                ),
+                (
+                    "diet",
+                    t("recipe_tag_group_diet")
+                ),
+                (
+                    "other",
+                    t("recipe_tag_group_other")
+                )
+            ] %}
+
+            {% for group_key, group_label in groups %}
+
+                {% set tags =
+                    tag_groups.get(
+                        group_key,
+                        []
+                    )
+                %}
+
+                {% if tags %}
+
+                    <div class="recipe-tag-select-group">
+
+                        <h3>
+                            {{ group_label }}
+                        </h3>
+
+                        <div class="recipe-tag-checkboxes">
+
+                            {% for tag in tags %}
+
+                                <label
+                                    class="recipe-tag-checkbox"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="tag"
+                                        value="{{ tag.id }}"
+                                        {% if
+                                            tag.id
+                                            in selected_tag_ids
+                                        %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span>
+                                        {{ tag.name }}
+                                    </span>
+
+                                </label>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+
+        <div class="recipe-search-options">
+
+            <label class="recipe-availability-filter">
+
+                <input
+                    type="checkbox"
+                    name="only_available"
+                    value="1"
+                    {% if only_available %}
+                        checked
+                    {% endif %}
+                >
+
+                <span>
+                    {{
+                        t(
+                            "recipe_filter_only_available"
+                        )
+                    }}
+                </span>
+
+            </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                type="submit"
+                class="primary-button auto-width"
+            >
+                {{ t("recipe_filter_apply") }}
+            </button>
+
+            <a
+                href="{{
+                    url_for(
+                        'recipes.index'
+                    )
+                }}"
+            >
+                {{ t("recipe_filter_clear") }}
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+{% if recipe_rows %}
+
+    <section class="panel recipe-list">
+
+        {% for row in recipe_rows %}
+
+            {% set recipe = row.recipe %}
+
+            <div class="location-row recipe-list-row">
+
+                <div class="recipe-list-main">
+
+                    <strong>
+                        <a
+                            href="{{
+                                url_for(
+                                    'recipes.detail',
+                                    public_id=recipe.public_id
+                                )
+                            }}"
+                        >
+                            {{ recipe.title }}
+                        </a>
+                    </strong>
+
+
+                    {% if recipe.tags %}
+
+                        <div class="recipe-list-tags">
+
+                            {% for tag in recipe.tags %}
+
+                                <span class="recipe-tag">
+                                    {{ tag.name }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="muted">
+
+                        {% if recipe.difficulty %}
+
+                            {{
+                                t(
+                                    "recipe_difficulty_"
+                                    ~ recipe.difficulty
+                                )
+                            }}
+
+                        {% endif %}
+
+                        {% if recipe.total_time_minutes %}
+
+                            {% if recipe.difficulty %}
+                                ·
+                            {% endif %}
+
+                            {{ recipe.total_time_minutes }}
+                            {{ t("recipe_minutes") }}
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if row.total_ingredients %}
+
+                        <div
+                            class="
+                                recipe-match
+                                {% if row.all_available %}
+                                    recipe-match-complete
+                                {% endif %}
+                            "
+                        >
+
+                            <strong>
+                                {{ row.available_count }}
+                                /
+                                {{ row.total_ingredients }}
+                            </strong>
+
+                            {{
+                                t(
+                                    "recipe_ingredients_available"
+                                )
+                            }}
+
+                            ·
+
+                            {{ row.match_percent }}%
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="muted">
+                            {{ t("recipe_no_ingredients") }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="row-actions">
+
+                    <a
+                        href="{{
+                            url_for(
+                                'recipes.edit',
+                                public_id=recipe.public_id
+                            )
+                        }}"
+                    >
+                        {{ t("edit") }}
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </section>
+
+{% else %}
+
+    <section class="panel">
+
+        <p class="muted">
+            {{ t("recipe_search_no_results") }}
+        </p>
+
+    </section>
+
+{% endif %}
+
+{% endblock %}
