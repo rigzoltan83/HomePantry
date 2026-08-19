@@ -54,6 +54,35 @@
 {{ t("recipe_edit_action") }}
     </a>
 
+<form
+    method="post"
+    action="{{
+        url_for(
+            'recipes.delete',
+            public_id=recipe.public_id
+        )
+    }}"
+    class="inline-form print-hide"
+    onsubmit="
+        return confirm(
+            '{{ t("recipe_delete_confirm") }}'
+        );
+    "
+>
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}"
+    >
+
+    <button
+        type="submit"
+        class="link-button danger-link"
+    >
+        {{ t("recipe_delete_action") }}
+    </button>
+</form>
+
 </div>
 
 </div>

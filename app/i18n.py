@@ -3,6 +3,13 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_delete_action": "Recept törlése",
+"recipe_delete_confirm": (
+    "Biztosan törlöd ezt a receptet?"
+),
+"recipe_deleted": (
+    "A recept törölve."
+),
 "recipe_edit_action": "Szerkesztés",
 "recipe_print": "Nyomtatás / PDF",
 "recipe_image_cover_updated": (
@@ -782,6 +789,13 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_delete_action": "Delete recipe",
+"recipe_delete_confirm": (
+    "Are you sure you want to delete this recipe?"
+),
+"recipe_deleted": (
+    "Recipe deleted."
+),
 "recipe_edit_action": "Edit",
 "recipe_print": "Print / PDF",
 "recipe_image_cover_updated": (

@@ -1542,3 +1542,31 @@ def recipe_image_delete(
             public_id=recipe.public_id,
         )
     )
+
+@bp.post(
+    "/<uuid:public_id>/delete"
+)
+@login_required
+def delete(
+    public_id,
+):
+    recipe = get_recipe_or_404(
+        public_id
+    )
+
+    recipe.is_active = False
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "recipe_deleted"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "recipes.index"
+        )
+    )

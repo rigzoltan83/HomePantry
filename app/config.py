@@ -36,6 +36,18 @@ class Config:
 
     PRODUCT_IMAGE_WEBP_QUALITY = 82
 
+    RECIPE_IMAGE_UPLOAD_DIR = os.getenv(
+        "RECIPE_IMAGE_UPLOAD_DIR",
+        (
+            "/opt/homepantry/"
+            "var/uploads/recipes"
+        ),
+    )
+
+    RECIPE_IMAGE_MAX_SIZE = 1600
+
+    RECIPE_IMAGE_WEBP_QUALITY = 82
+
     MAX_CONTENT_LENGTH = (
         50 * 1024 * 1024
     )
