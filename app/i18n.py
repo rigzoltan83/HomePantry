@@ -3,6 +3,39 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_edit_action": "Szerkesztés",
+"recipe_print": "Nyomtatás / PDF",
+"recipe_image_cover_updated": (
+    "A recept borítóképe frissítve."
+),
+"recipe_image_deleted": (
+    "A receptkép törölve."
+),
+"recipe_image_cover": "Borítókép",
+"recipe_image_set_cover": (
+    "Beállítás borítóképként"
+),
+"recipe_image_delete": "Kép törlése",
+"recipe_images_existing": (
+    "Mentett képek"
+),
+"recipe_images_title": "Képek",
+"recipe_images_choose_files": (
+    "Képek kiválasztása"
+),
+"recipe_images_take_photo": (
+    "Fénykép készítése"
+),
+"recipe_images_pending": (
+    "Feltöltésre váró képek"
+),
+"recipe_images_help": (
+    "Több kép is feltölthető. "
+    "Az első kép lesz a borítókép."
+),
+"recipe_image_invalid": (
+    "A kiválasztott képet nem sikerült feldolgozni."
+),
 "recipe_search": "Keresés",
 "recipe_search_placeholder": (
     "Recept, hozzávaló vagy címke..."
@@ -749,6 +782,39 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_edit_action": "Edit",
+"recipe_print": "Print / PDF",
+"recipe_image_cover_updated": (
+    "Recipe cover image updated."
+),
+"recipe_image_deleted": (
+    "Recipe image deleted."
+),
+"recipe_image_cover": "Cover image",
+"recipe_image_set_cover": (
+    "Set as cover"
+),
+"recipe_image_delete": "Delete image",
+"recipe_images_existing": (
+    "Saved images"
+),
+"recipe_images_title": "Images",
+"recipe_images_choose_files": (
+    "Choose images"
+),
+"recipe_images_take_photo": (
+    "Take photo"
+),
+"recipe_images_pending": (
+    "Images waiting to upload"
+),
+"recipe_images_help": (
+    "Multiple images can be uploaded. "
+    "The first image becomes the cover."
+),
+"recipe_image_invalid": (
+    "The selected image could not be processed."
+),
 "recipe_search": "Search",
 "recipe_search_placeholder": (
     "Recipe, ingredient or tag..."

@@ -32,20 +32,29 @@
 
     </div>
 
-    <div class="row-actions">
+<div class="row-actions recipe-detail-actions">
 
-        <a
-            href="{{
-                url_for(
-                    'recipes.edit',
-                    public_id=recipe.public_id
-                )
-            }}"
-        >
-            {{ t("edit") }}
-        </a>
+    <button
+        type="button"
+        class="secondary-button print-hide"
+        onclick="window.print()"
+    >
+        {{ t("recipe_print") }}
+    </button>
 
-    </div>
+    <a
+        class="print-hide"
+        href="{{
+            url_for(
+                'recipes.edit',
+                public_id=recipe.public_id
+            )
+        }}"
+    >
+{{ t("recipe_edit_action") }}
+    </a>
+
+</div>
 
 </div>
 
@@ -57,6 +66,24 @@
     or recipe.cook_time_minutes
     or recipe.total_time_minutes
 %}
+
+{% if cover_image %}
+
+    <div class="recipe-detail-cover">
+
+        <img
+            src="{{
+                url_for(
+                    'recipes.recipe_image',
+                    public_id=cover_image.public_id
+                )
+            }}"
+            alt="{{ recipe.title }}"
+        >
+
+    </div>
+
+{% endif %}
 
 <section class="panel recipe-detail-meta">
 
@@ -164,6 +191,7 @@
                 <span
                     class="
                         recipe-availability
+print-hide
                         {% if row.is_available %}
                             is-available
                         {% else %}

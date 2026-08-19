@@ -1,15 +1,18 @@
 import unicodedata
+import os
 from decimal import (
     Decimal,
     InvalidOperation,
 )
 from flask import (
     abort,
+    current_app,
     flash,
     jsonify,
     redirect,
     render_template,
     request,
+    send_from_directory,
     url_for,
 )
 from flask_login import (
@@ -25,6 +28,7 @@ from app.models import (
     Ingredient,
     InventoryBatch,
     Recipe,
+    RecipeImage,
     RecipeIngredient,
     RecipeTag,
     Unit,
@@ -32,6 +36,64 @@ from app.models import (
 
 from . import bp
 from .forms import RecipeForm
+from .recipe_images import (
+    delete_recipe_image_file,
+    save_recipe_image,
+)
+
+
+def save_recipe_form_images(
+    recipe,
+    form,
+):
+    saved_images = []
+
+    image_files = list(
+        form.new_images.data
+        or []
+    )
+
+    camera_image = (
+        form.camera_image.data
+    )
+
+    if (
+        camera_image
+        and camera_image.filename
+    ):
+        image_files.append(
+            camera_image
+        )
+
+    try:
+        for image_file in image_files:
+            if (
+                image_file is None
+                or not image_file.filename
+            ):
+                continue
+
+            saved_image = (
+                save_recipe_image(
+                    recipe,
+                    image_file,
+                )
+            )
+
+            if saved_image is not None:
+                saved_images.append(
+                    saved_image
+                )
+
+        return saved_images
+
+    except ValueError:
+        for saved_image in saved_images:
+            delete_recipe_image_file(
+                saved_image
+            )
+
+        raise
 
 
 def normalize_search_text(
@@ -743,7 +805,47 @@ def new():
                 )
             )
 
-        db.session.commit()
+        saved_images = []
+
+        try:
+            saved_images = (
+                save_recipe_form_images(
+                    recipe,
+                    form,
+                )
+            )
+
+            db.session.commit()
+
+        except ValueError:
+            db.session.rollback()
+
+            for saved_image in saved_images:
+                delete_recipe_image_file(
+                    saved_image
+                )
+
+            flash(
+                translate(
+                    "recipe_image_invalid"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "recipes/recipe_form.html",
+                form=form,
+                page_title=translate(
+                    "recipe_new_title"
+                ),
+                tag_groups=tag_groups,
+                selected_tag_ids=(
+                    selected_tag_ids
+                ),
+                recipe_ingredient_rows=(
+                    ingredient_rows
+                ),
+            )
 
         flash(
             translate(
@@ -931,7 +1033,83 @@ def edit(
                 )
             )
 
-        db.session.commit()
+        saved_images = []
+
+        try:
+            saved_images = (
+                save_recipe_form_images(
+                    recipe,
+                    form,
+                )
+            )
+
+            db.session.commit()
+
+        except ValueError:
+            db.session.rollback()
+
+            for saved_image in saved_images:
+                delete_recipe_image_file(
+                    saved_image
+                )
+
+            flash(
+                translate(
+                    "recipe_image_invalid"
+                ),
+                "error",
+            )
+
+            selected_tag_ids = {
+                tag.id
+                for tag in recipe.tags
+            }
+
+            recipe_ingredient_rows = [
+                {
+                    "ingredient_id": (
+                        ingredient.ingredient_id
+                        or 0
+                    ),
+                    "name": (
+                        ingredient.original_name
+                    ),
+                    "quantity": (
+                        str(
+                            ingredient.quantity
+                        )
+                        if ingredient.quantity
+                        is not None
+                        else ""
+                    ),
+                    "unit_id": (
+                        ingredient.unit_id
+                        or 0
+                    ),
+                    "unit_text": (
+                        ingredient.unit_text
+                        or ""
+                    ),
+                }
+                for ingredient
+                in recipe.ingredients
+            ]
+
+            return render_template(
+                "recipes/recipe_form.html",
+                form=form,
+                page_title=translate(
+                    "recipe_edit_title"
+                ),
+                tag_groups=tag_groups,
+                selected_tag_ids=(
+                    selected_tag_ids
+                ),
+                recipe_ingredient_rows=(
+                    recipe_ingredient_rows
+                ),
+                recipe=recipe,
+            )
 
         flash(
             translate(
@@ -991,6 +1169,7 @@ def edit(
         recipe_ingredient_rows=(
             recipe_ingredient_rows
         ),
+        recipe=recipe,
     )
 
 @bp.get(
@@ -1147,6 +1326,23 @@ def detail(
         ).all()
     )
 
+    cover_image = next(
+        (
+            image
+            for image in recipe.images
+            if image.is_cover
+        ),
+        None,
+    )
+
+    if (
+        cover_image is None
+        and recipe.images
+    ):
+        cover_image = (
+            recipe.images[0]
+        )
+
     ingredient_rows = []
 
     for recipe_ingredient in (
@@ -1174,4 +1370,175 @@ def detail(
         ingredient_rows=(
             ingredient_rows
         ),
+        cover_image=cover_image,
+    )
+
+@bp.get(
+    "/recipe-images/<uuid:public_id>"
+)
+@login_required
+def recipe_image(
+    public_id,
+):
+    household_id = (
+        get_current_household_id()
+    )
+
+    image = db.session.scalar(
+        select(RecipeImage)
+        .join(
+            Recipe,
+            Recipe.id
+            == RecipeImage.recipe_id,
+        )
+        .where(
+            RecipeImage.public_id
+            == public_id,
+            Recipe.household_id
+            == household_id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    image_root = (
+        current_app.config[
+            "RECIPE_IMAGE_UPLOAD_DIR"
+        ]
+    )
+
+    directory = os.path.join(
+        image_root,
+        str(image.recipe.public_id),
+    )
+
+    return send_from_directory(
+        directory,
+        image.stored_filename,
+        mimetype="image/webp",
+        max_age=86400,
+    )
+
+
+@bp.post(
+    "/<uuid:recipe_public_id>/images/"
+    "<uuid:image_public_id>/cover"
+)
+@login_required
+def recipe_image_cover(
+    recipe_public_id,
+    image_public_id,
+):
+    recipe = get_recipe_or_404(
+        recipe_public_id
+    )
+
+    image = db.session.scalar(
+        select(RecipeImage)
+        .where(
+            RecipeImage.public_id
+            == image_public_id,
+            RecipeImage.recipe_id
+            == recipe.id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    for recipe_image in recipe.images:
+        recipe_image.is_cover = (
+            recipe_image.id
+            == image.id
+        )
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "recipe_image_cover_updated"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "recipes.edit",
+            public_id=recipe.public_id,
+        )
+    )
+
+
+@bp.post(
+    "/<uuid:recipe_public_id>/images/"
+    "<uuid:image_public_id>/delete"
+)
+@login_required
+def recipe_image_delete(
+    recipe_public_id,
+    image_public_id,
+):
+    recipe = get_recipe_or_404(
+        recipe_public_id
+    )
+
+    image = db.session.scalar(
+        select(RecipeImage)
+        .where(
+            RecipeImage.public_id
+            == image_public_id,
+            RecipeImage.recipe_id
+            == recipe.id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    was_cover = image.is_cover
+
+    delete_recipe_image_file(
+        image
+    )
+
+    db.session.delete(
+        image
+    )
+
+    db.session.flush()
+
+    if was_cover:
+        next_image = db.session.scalar(
+            select(RecipeImage)
+            .where(
+                RecipeImage.recipe_id
+                == recipe.id,
+                RecipeImage.id
+                != image.id,
+            )
+            .order_by(
+                RecipeImage.sort_order,
+                RecipeImage.id,
+            )
+            .limit(1)
+        )
+
+        if next_image is not None:
+            next_image.is_cover = True
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "recipe_image_deleted"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "recipes.edit",
+            public_id=recipe.public_id,
+        )
     )

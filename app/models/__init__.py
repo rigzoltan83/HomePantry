@@ -24,6 +24,7 @@ from .product import (
 )
 from .recipe import (
     Recipe,
+    RecipeImage,
     RecipeIngredient,
     RecipeTag,
 )
@@ -60,6 +61,7 @@ __all__ = [
     "ProductBarcode",
     "ProductImage",
     "Recipe",
+    "RecipeImage",
     "RecipeIngredient",
     "RecipeTag",
     "StorageLocation",

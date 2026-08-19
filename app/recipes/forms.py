@@ -1,4 +1,9 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import (
+    FileAllowed,
+    FileField,
+    MultipleFileField,
+)
 from wtforms import (
     BooleanField,
     IntegerField,
@@ -71,6 +76,34 @@ class RecipeForm(FlaskForm):
     instructions_text = TextAreaField(
         validators=[
             Optional(),
+        ],
+    )
+
+    new_images = MultipleFileField(
+        validators=[
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                "JPG, PNG vagy WEBP kép tölthető fel.",
+            ),
+        ],
+    )
+
+    camera_image = FileField(
+        validators=[
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                "JPG, PNG vagy WEBP kép tölthető fel.",
+            ),
         ],
     )
 

@@ -173,6 +173,100 @@ class Recipe(db.Model):
         order_by="RecipeTag.sort_order, RecipeTag.name",
     )
 
+    images = db.relationship(
+        "RecipeImage",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        order_by=(
+            "RecipeImage.sort_order, "
+            "RecipeImage.id"
+        ),
+    )
+
+
+class RecipeImage(db.Model):
+    __tablename__ = "recipe_images"
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "recipe_id",
+            "stored_filename",
+            name="uq_recipe_image_file",
+        ),
+    )
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
+
+    public_id = db.Column(
+        db.Uuid,
+        unique=True,
+        nullable=False,
+        default=uuid.uuid4,
+        index=True,
+    )
+
+    recipe_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "recipes.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    original_filename = db.Column(
+        db.String(255),
+        nullable=True,
+    )
+
+    stored_filename = db.Column(
+        db.String(255),
+        nullable=False,
+    )
+
+    is_cover = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+    )
+
+    sort_order = db.Column(
+        db.Integer,
+        nullable=False,
+        default=100,
+    )
+
+    width = db.Column(
+        db.Integer,
+        nullable=True,
+    )
+
+    height = db.Column(
+        db.Integer,
+        nullable=True,
+    )
+
+    file_size = db.Column(
+        db.Integer,
+        nullable=True,
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    recipe = db.relationship(
+        "Recipe",
+        back_populates="images",
+    )
+
 
 class RecipeIngredient(db.Model):
     __tablename__ = "recipe_ingredients"

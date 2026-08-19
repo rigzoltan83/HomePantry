@@ -2465,3 +2465,118 @@ body.modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+.recipe-detail-cover {
+    margin-bottom: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.recipe-detail-cover img {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+}
+
+.recipe-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@media print {
+
+    @page {
+        size: A4;
+        margin: 14mm;
+    }
+
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 11pt;
+    }
+
+    .site-header,
+    .flash,
+    .print-hide {
+        display: none !important;
+    }
+
+    .page {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .page-heading {
+        margin-bottom: 14px;
+    }
+
+    .page-heading h1 {
+        margin-top: 0;
+        font-size: 24pt;
+        line-height: 1.1;
+    }
+
+    .panel {
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin-top: 18px;
+        break-inside: avoid;
+    }
+
+    .recipe-detail-cover {
+        max-width: 150mm;
+        margin:
+            0
+            auto
+            16px;
+        border-radius: 0;
+        overflow: visible;
+        break-inside: avoid;
+    }
+
+    .recipe-detail-cover img {
+        width: 100%;
+        max-height: 90mm;
+        object-fit: contain;
+    }
+
+    .recipe-detail-tags {
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    .recipe-tag {
+        border: 1px solid #999 !important;
+        background: transparent !important;
+        color: #000 !important;
+    }
+
+    .recipe-detail-meta {
+        display: flex;
+        gap: 18px;
+        border-top: 1px solid #bbb;
+        border-bottom: 1px solid #bbb;
+        padding: 8px 0 !important;
+        break-inside: avoid;
+    }
+
+    .recipe-detail-ingredient {
+        break-inside: avoid;
+    }
+
+    .recipe-instructions {
+        line-height: 1.45;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+}

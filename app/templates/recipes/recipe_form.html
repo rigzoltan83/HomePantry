@@ -14,6 +14,7 @@
 
     <form
         method="post"
+        enctype="multipart/form-data"
         novalidate
     >
         {{ form.hidden_tag() }}
@@ -312,6 +313,192 @@
 
         </div>
 
+<section class="product-image-upload-panel">
+
+    <h2 class="product-image-upload-title">
+        {{ t("recipe_images_title") }}
+    </h2>
+
+    <div class="product-image-upload-actions">
+
+        <button
+            type="button"
+            class="secondary-button product-image-upload-button"
+data-target="{{ form.new_images.id }}"
+        >
+            {{ t("recipe_images_choose_files") }}
+        </button>
+
+        <button
+            type="button"
+            class="secondary-button product-image-upload-button"
+            data-target="{{ form.camera_image.id }}"
+        >
+            {{ t("recipe_images_take_photo") }}
+        </button>
+
+    </div>
+
+    <div
+        class="product-image-pending"
+        id="recipe-image-pending"
+        hidden
+    >
+
+        <div class="product-image-pending-title">
+            {{ t("recipe_images_pending") }}
+        </div>
+
+        <div
+            class="product-image-pending-grid"
+            id="recipe-image-pending-grid"
+        ></div>
+
+    </div>
+
+{{
+    form.new_images(
+        accept="image/*",
+        class="product-image-hidden-input"
+    )
+}}
+
+    {{
+        form.camera_image(
+            accept="image/*",
+            capture="environment",
+            class="product-image-hidden-input"
+        )
+    }}
+
+    <div class="field-help">
+        {{ t("recipe_images_help") }}
+    </div>
+
+{% for error in form.new_images.errors %}
+        <div class="field-error">
+            {{ error }}
+        </div>
+    {% endfor %}
+
+    {% for error in form.camera_image.errors %}
+        <div class="field-error">
+            {{ error }}
+        </div>
+    {% endfor %}
+
+</section>
+
+{% if recipe is defined and recipe and recipe.images %}
+
+    <section class="product-image-manager">
+
+        <h2>
+            {{ t("recipe_images_existing") }}
+        </h2>
+
+        <div class="product-image-grid">
+
+            {% for image in recipe.images %}
+
+                <article class="product-image-card">
+
+                    <div class="product-image-preview-wrap">
+
+                        <img
+                            class="product-image-preview"
+                            src="{{
+                                url_for(
+                                    'recipes.recipe_image',
+                                    public_id=image.public_id
+                                )
+                            }}"
+                            alt="{{ recipe.title }}"
+                            loading="lazy"
+                        >
+
+                        {% if image.is_cover %}
+                            <span class="product-cover-badge">
+                                {{ t("recipe_image_cover") }}
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="product-image-meta">
+
+                        {% if image.width and image.height %}
+                            <span>
+                                {{ image.width }}
+                                ×
+                                {{ image.height }}
+                            </span>
+                        {% endif %}
+
+                        {% if image.file_size %}
+                            <span>
+                                {{
+                                    (
+                                        image.file_size
+                                        / 1024
+                                    )
+                                    | round(0)
+                                    | int
+                                }}
+                                KB
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="product-image-actions">
+
+{% if not image.is_cover %}
+
+    <button
+        type="submit"
+        class="secondary-button"
+        formmethod="post"
+        formaction="{{
+            url_for(
+                'recipes.recipe_image_cover',
+                recipe_public_id=recipe.public_id,
+                image_public_id=image.public_id
+            )
+        }}"
+    >
+        {{ t("recipe_image_set_cover") }}
+    </button>
+
+{% endif %}
+
+<button
+    type="submit"
+    class="link-button danger-link"
+    formmethod="post"
+    formaction="{{
+        url_for(
+            'recipes.recipe_image_delete',
+            recipe_public_id=recipe.public_id,
+            image_public_id=image.public_id
+        )
+    }}"
+>
+    {{ t("recipe_image_delete") }}
+</button>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+{% endif %}
+
         <div class="form-actions">
 
             {{
@@ -335,5 +522,219 @@
     </form>
 
 </section>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+const imageInput =
+    document.getElementById(
+        "{{ form.new_images.id }}"
+    );
+
+        const cameraInput =
+            document.getElementById(
+                "{{ form.camera_image.id }}"
+            );
+
+        const pendingWrap =
+            document.getElementById(
+                "recipe-image-pending"
+            );
+
+        const pendingGrid =
+            document.getElementById(
+                "recipe-image-pending-grid"
+            );
+
+        const selectedFiles =
+            new DataTransfer();
+
+        function syncImageInput() {
+            imageInput.files =
+                selectedFiles.files;
+        }
+
+        function renderPendingFiles() {
+            pendingGrid.innerHTML = "";
+
+            const files = Array.from(
+                selectedFiles.files
+            );
+
+            pendingWrap.hidden =
+                files.length === 0;
+
+            files.forEach(
+                (file, index) => {
+                    const card =
+                        document.createElement(
+                            "div"
+                        );
+
+                    card.className =
+                        "product-image-pending-card";
+
+                    const image =
+                        document.createElement(
+                            "img"
+                        );
+
+                    image.className =
+                        "product-image-pending-preview";
+
+                    image.alt =
+                        file.name;
+
+                    const objectUrl =
+                        URL.createObjectURL(
+                            file
+                        );
+
+                    image.src =
+                        objectUrl;
+
+                    image.onload =
+                        () => {
+                            URL.revokeObjectURL(
+                                objectUrl
+                            );
+                        };
+
+                    const removeButton =
+                        document.createElement(
+                            "button"
+                        );
+
+                    removeButton.type =
+                        "button";
+
+                    removeButton.className =
+                        "link-button danger-link";
+
+                    removeButton.textContent =
+                        "{{ t('remove') }}";
+
+                    removeButton.addEventListener(
+                        "click",
+                        () => {
+                            const nextFiles =
+                                Array.from(
+                                    selectedFiles.files
+                                ).filter(
+                                    (
+                                        unusedFile,
+                                        fileIndex
+                                    ) =>
+                                        fileIndex
+                                        !== index
+                                );
+
+                            const replacement =
+                                new DataTransfer();
+
+                            nextFiles.forEach(
+                                nextFile => {
+                                    replacement.items.add(
+                                        nextFile
+                                    );
+                                }
+                            );
+
+                            selectedFiles.items.clear();
+
+                            Array.from(
+                                replacement.files
+                            ).forEach(
+                                nextFile => {
+                                    selectedFiles.items.add(
+                                        nextFile
+                                    );
+                                }
+                            );
+
+                            syncImageInput();
+                            renderPendingFiles();
+                        }
+                    );
+
+                    card.appendChild(
+                        image
+                    );
+
+                    card.appendChild(
+                        removeButton
+                    );
+
+                    pendingGrid.appendChild(
+                        card
+                    );
+                }
+            );
+        }
+
+        document
+            .querySelectorAll(
+                ".product-image-upload-button"
+            )
+            .forEach(
+                button => {
+                    button.addEventListener(
+                        "click",
+                        () => {
+                            const target =
+                                document.getElementById(
+                                    button.dataset.target
+                                );
+
+                            if (target) {
+                                target.click();
+                            }
+                        }
+                    );
+                }
+            );
+
+        imageInput.addEventListener(
+            "change",
+            () => {
+                Array.from(
+                    imageInput.files
+                ).forEach(
+                    file => {
+                        selectedFiles.items.add(
+                            file
+                        );
+                    }
+                );
+
+                syncImageInput();
+                renderPendingFiles();
+            }
+        );
+
+        cameraInput.addEventListener(
+            "change",
+            () => {
+                Array.from(
+                    cameraInput.files
+                ).forEach(
+                    file => {
+                        selectedFiles.items.add(
+                            file
+                        );
+                    }
+                );
+
+                syncImageInput();
+
+                cameraInput.value = "";
+
+                renderPendingFiles();
+            }
+        );
+    }
+);
+</script>
 
 {% endblock %}
