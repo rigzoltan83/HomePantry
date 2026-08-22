@@ -96,6 +96,7 @@
                                     {{ batch.product.brand or '' }}
                                 {% endif %}
 
+
                                 {{ movement.movement_type }}
                                 {{ movement.note or '' }}
 
@@ -123,18 +124,28 @@
                             </td>
 
                             <td>
-                                {% if batch.product %}
-                                    {% if batch.product.brand %}
-                                        {{ batch.product.brand }}
-                                        —
-                                    {% endif %}
+                                <div>
+                                    {% if batch.product %}
+                                        {% if batch.product.brand %}
+                                            {{ batch.product.brand }}
+                                            —
+                                        {% endif %}
 
-                                    {{ batch.product.name }}
-                                {% else %}
-                                    <span class="muted">
-                                        {{ t("inventory_bulk_label") }}
-                                    </span>
-                                {% endif %}
+                                        {{ batch.product.name }}
+                                    {% else %}
+                                        <span class="muted">
+                                            {{ t("inventory_bulk_label") }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="muted">
+                                    {{
+                                        build_location_path(
+                                            batch.storage_location
+                                        )
+                                    }}
+                                </div>
                             </td>
 
                             <td>

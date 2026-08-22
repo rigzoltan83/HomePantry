@@ -6,6 +6,16 @@ document.addEventListener(
                 "inventory-list-search"
             );
 
+        const locationFilter =
+            document.getElementById(
+                "inventory-location-filter"
+            );
+
+        const clearButton =
+            document.getElementById(
+                "inventory-filter-clear"
+            );
+
         if (!searchInput) {
             return;
         }
@@ -62,72 +72,146 @@ document.addEventListener(
                 .trim();
         };
 
+        const groupMatchesStatus =
+            group => {
+                if (
+                    activeFilter === "low"
+                ) {
+                    return (
+                        group.dataset.low
+                        === "1"
+                    );
+                }
+
+                if (
+                    activeFilter
+                    === "expiring"
+                ) {
+                    return (
+                        group.dataset.expiring
+                        === "1"
+                    );
+                }
+
+                if (
+                    activeFilter
+                    === "expired"
+                ) {
+                    return (
+                        group.dataset.expired
+                        === "1"
+                    );
+                }
+
+                return true;
+            };
+
         const applyFilters = () => {
             const needle =
                 normalizeText(
                     searchInput.value
                 );
 
-            let visibleCount = 0;
+            const locationId =
+                locationFilter
+                    ? locationFilter.value
+                    : "";
+
+const isFiltered =
+    Boolean(needle)
+    || Boolean(locationId)
+    || activeFilter !== "all";
+
+            let visibleGroupCount = 0;
 
             groups.forEach(
                 group => {
-                    const haystack =
-                        normalizeText(
-                            group.dataset
-                                .inventorySearch
+                    const batches =
+                        Array.from(
+                            group.querySelectorAll(
+                                ".js-inventory-batch"
+                            )
                         );
 
-                    const searchMatches =
-                        !needle
-                        || haystack.includes(
-                            needle
+const summaries =
+    Array.from(
+        group.querySelectorAll(
+            ".js-inventory-summary"
+        )
+    );
+
+summaries.forEach(
+    summary => {
+        summary.hidden =
+            isFiltered;
+    }
+);
+
+                    let visibleBatchCount = 0;
+
+                    batches.forEach(
+                        batch => {
+                            const haystack =
+                                normalizeText(
+                                    batch.dataset
+                                        .batchSearch
+                                );
+
+                            const searchMatches =
+                                !needle
+                                || haystack.includes(
+                                    needle
+                                );
+
+                            const locationMatches =
+                                !locationId
+                                || (
+                                    batch.dataset
+                                        .locationId
+                                    === locationId
+                                );
+
+                            const visible =
+                                searchMatches
+                                && locationMatches;
+
+                            batch.hidden =
+                                !visible;
+
+                            if (visible) {
+                                visibleBatchCount += 1;
+                            }
+                        }
+                    );
+
+                    const statusMatches =
+                        groupMatchesStatus(
+                            group
                         );
-
-                    let statusMatches = true;
-
-                    if (
-                        activeFilter === "low"
-                    ) {
-                        statusMatches =
-                            group.dataset.low
-                            === "1";
-                    }
-
-                    if (
-                        activeFilter
-                        === "expiring"
-                    ) {
-                        statusMatches =
-                            group.dataset.expiring
-                            === "1";
-                    }
-
-                    if (
-                        activeFilter
-                        === "expired"
-                    ) {
-                        statusMatches =
-                            group.dataset.expired
-                            === "1";
-                    }
 
                     const visible =
-                        searchMatches
+                        visibleBatchCount > 0
                         && statusMatches;
 
                     group.hidden =
                         !visible;
 
                     if (visible) {
-                        visibleCount += 1;
+                        visibleGroupCount += 1;
+
+                        if (
+                            needle
+                            || locationId
+                        ) {
+                            group.open = true;
+                        }
                     }
                 }
             );
 
             if (emptyMessage) {
                 emptyMessage.hidden =
-                    visibleCount !== 0;
+                    visibleGroupCount !== 0;
             }
         };
 
@@ -135,6 +219,40 @@ document.addEventListener(
             "input",
             applyFilters
         );
+
+        if (locationFilter) {
+            locationFilter.addEventListener(
+                "change",
+                applyFilters
+            );
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener(
+                "click",
+                () => {
+                    searchInput.value = "";
+
+                    if (locationFilter) {
+                        locationFilter.value = "";
+                    }
+
+                    activeFilter = "all";
+
+                    filterButtons.forEach(
+                        button => {
+                            button.classList.toggle(
+                                "active",
+                                button.dataset.filter
+                                === "all"
+                            );
+                        }
+                    );
+
+                    applyFilters();
+                }
+            );
+        }
 
         filterButtons.forEach(
             button => {
@@ -145,8 +263,6 @@ document.addEventListener(
                 );
             }
         );
-
-        applyFilters();
 
         filterButtons.forEach(
             button => {
@@ -172,5 +288,7 @@ document.addEventListener(
                 );
             }
         );
+
+        applyFilters();
     }
 );

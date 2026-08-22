@@ -3,6 +3,13 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"movement_col_location": "Tárhely",
+"inventory_location_filter_all": (
+    "Összes tárhely"
+),
+"inventory_filter_clear": (
+    "Szűrés törlése"
+),
 "inventory_product_search_placeholder": (
     "Keress vagy írj be új terméknevet..."
 ),
@@ -792,6 +799,13 @@ TRANSLATIONS = {
     },
 
     "en": {
+"movement_col_location": "Storage location",
+"inventory_location_filter_all": (
+    "All storage locations"
+),
+"inventory_filter_clear": (
+    "Clear filters"
+),
 "inventory_product_search_placeholder": (
     "Search or enter a new product name..."
 ),

@@ -45,6 +45,30 @@
             autocomplete="off"
         >
 
+<select
+    id="inventory-location-filter"
+    class="list-search-input"
+>
+    <option value="">
+        {{ t("inventory_location_filter_all") }}
+    </option>
+
+    {% for location_id, location_label
+       in location_filter_choices %}
+        <option value="{{ location_id }}">
+            {{ location_label }}
+        </option>
+    {% endfor %}
+</select>
+
+<button
+    type="button"
+    id="inventory-filter-clear"
+    class="secondary-button"
+>
+    {{ t("inventory_filter_clear") }}
+</button>
+
         <div class="inventory-filter-buttons">
             <button
                 type="button"
@@ -144,34 +168,36 @@
                                 {% endif %}
                             </div>
 
-                            <span class="muted">
-                                {{ group.batches|length }}
-                                {{ t("inventory_batch_count") }}
-                            </span>
+<span class="muted js-inventory-summary">
+    {{ group.batches|length }}
+    {{ t("inventory_batch_count") }}
+</span>
 
-                            {% if group.stock_rule %}
-                                <span class="muted">
-                                    {{ t("inventory_minimum_stock") }}:
-                                    {{ group.stock_rule.quantity }}
-                                    {{ group.stock_rule.symbol }}
-                                </span>
-                            {% endif %}
+{% if group.stock_rule %}
+    <span class="muted js-inventory-summary">
+        {{ t("inventory_minimum_stock") }}:
+        {{ group.stock_rule.quantity }}
+        {{ group.stock_rule.symbol }}
+    </span>
+{% endif %}
+
                         </div>
 
-                        <div
-                            class="inventory-group-total"
-                        >
-                            {% for total in group.display_totals %}
-                                <span>
-                                    {{ total.quantity }}
-                                    {{ total.symbol }}
-                                </span>
+<div
+    class="inventory-group-total js-inventory-summary"
+>
+    {% for total in group.display_totals %}
+        <span>
+            {{ total.quantity }}
+            {{ total.symbol }}
+        </span>
 
-                                {% if not loop.last %}
-                                    <span>+</span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
+        {% if not loop.last %}
+            <span>+</span>
+        {% endif %}
+    {% endfor %}
+</div>
+
                     </summary>
 
                     <div
@@ -180,16 +206,24 @@
 
                         {% for batch in group.batches %}
 
-                            <article
-                                class="
-                                    inventory-batch-card
-                                    {% if batch.expiry_status == 'expired' %}
-                                        inventory-batch-expired
-                                    {% elif batch.expiry_status == 'expiring' %}
-                                        inventory-batch-expiring
-                                    {% endif %}
-                                "
-                            >
+
+<article
+    class="
+        inventory-batch-card
+        js-inventory-batch
+        {% if batch.expiry_status == 'expired' %}
+            inventory-batch-expired
+        {% elif batch.expiry_status == 'expiring' %}
+            inventory-batch-expiring
+        {% endif %}
+    "
+    data-batch-search="{{
+        batch.search_text
+    }}"
+    data-location-id="{{
+        batch.location_filter_id
+    }}"
+>
                                 <div
                                     class="inventory-batch-main"
                                 >

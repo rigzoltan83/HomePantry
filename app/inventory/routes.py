@@ -2102,6 +2102,19 @@ def batch_new():
             ):
                 abort(400)
 
+        if (
+            product is not None
+            and product.ingredient_id
+            is not None
+            and product.ingredient_id
+            != ingredient.id
+        ):
+            ingredient = product.ingredient
+
+            form.ingredient_id.data = (
+                ingredient.id
+            )
+
         product_name = (
             form.product_search_name.data.strip()
             if form.product_search_name.data
@@ -3662,12 +3675,25 @@ def inventory_list():
         ]
 
         for batch in group["batches"]:
+            batch_search_parts = [
+                group["name"],
+                ingredient.canonical_key,
+            ]
+
             if batch.product is not None:
+                batch_search_parts.append(
+                    batch.product.name
+                )
+
                 search_parts.append(
                     batch.product.name
                 )
 
                 if batch.product.brand:
+                    batch_search_parts.append(
+                        batch.product.brand
+                    )
+
                     search_parts.append(
                         batch.product.brand
                     )
@@ -3675,14 +3701,34 @@ def inventory_list():
                 for barcode in (
                     batch.product.barcodes
                 ):
+                    batch_search_parts.append(
+                        barcode.barcode
+                    )
+
                     search_parts.append(
                         barcode.barcode
                     )
 
-            search_parts.append(
+            location_path = (
                 build_location_path(
                     batch.storage_location
                 )
+            )
+
+            batch_search_parts.append(
+                location_path
+            )
+
+            search_parts.append(
+                location_path
+            )
+
+            batch.search_text = " ".join(
+                batch_search_parts
+            )
+
+            batch.location_filter_id = (
+                batch.storage_location_id
             )
 
         group["display_totals"] = (
@@ -3748,10 +3794,19 @@ def inventory_list():
         )
     )
 
+    location_filter_choices = (
+        get_storage_location_choices(
+            household_id
+        )
+    )
+
     return render_template(
         "inventory/inventory_list.html",
         inventory_groups=(
             inventory_groups
+        ),
+        location_filter_choices=(
+            location_filter_choices
         ),
         build_location_path=(
             build_location_path
