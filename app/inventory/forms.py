@@ -77,6 +77,13 @@ class InventoryBatchForm(FlaskForm):
         ],
     )
 
+    product_search_name = StringField(
+        validators=[
+            Optional(),
+            Length(max=255),
+        ],
+    )
+
     barcode = StringField(
         validators=[
             Optional(),

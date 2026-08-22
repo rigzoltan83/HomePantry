@@ -3,6 +3,9 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"inventory_product_search_placeholder": (
+    "Keress vagy írj be új terméknevet..."
+),
 "recipe_delete_action": "Recept törlése",
 "recipe_delete_confirm": (
     "Biztosan törlöd ezt a receptet?"
@@ -789,6 +792,9 @@ TRANSLATIONS = {
     },
 
     "en": {
+"inventory_product_search_placeholder": (
+    "Search or enter a new product name..."
+),
 "recipe_delete_action": "Delete recipe",
 "recipe_delete_confirm": (
     "Are you sure you want to delete this recipe?"

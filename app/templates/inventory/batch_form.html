@@ -176,16 +176,23 @@
 <div class="field js-existing-product-field">
     {{ form.product_id.label }}
 
-            <div class="autocomplete-select">
+<div
+    class="autocomplete-select"
+    data-allow-custom="1"
+>
                 {{ form.product_id(
                     class="js-autocomplete-select"
                 ) }}
 
-                <input
-                    type="text"
-                    class="autocomplete-input js-autocomplete-input"
-                    autocomplete="off"
-                >
+{{
+    form.product_search_name(
+        class="autocomplete-input js-autocomplete-input",
+        autocomplete="off",
+        placeholder=t(
+            "inventory_product_search_placeholder"
+        )
+    )
+}}
 
                 <div
                     class="autocomplete-results"

@@ -14,6 +14,7 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    session,
     url_for,
 )
 from flask_login import (
@@ -1998,6 +1999,34 @@ def batch_new():
         )
     )
 
+    if not form.is_submitted():
+        last_location_id = session.get(
+            "inventory_last_storage_location_id"
+        )
+
+        if last_location_id is not None:
+            valid_location_ids = {
+                location_id
+                for (
+                    location_id,
+                    _label,
+                )
+                in form.storage_location_id.choices
+            }
+
+            if (
+                last_location_id
+                in valid_location_ids
+            ):
+                form.storage_location_id.data = (
+                    last_location_id
+                )
+            else:
+                session.pop(
+                    "inventory_last_storage_location_id",
+                    None,
+                )
+
     selected_ingredient_id = (
         form.ingredient_id.data
         if form.ingredient_id.data
@@ -2073,6 +2102,44 @@ def batch_new():
             ):
                 abort(400)
 
+        product_name = (
+            form.product_search_name.data.strip()
+            if form.product_search_name.data
+            else ""
+        )
+
+        if (
+            not product_name
+            and form.new_product_name.data
+        ):
+            product_name = (
+                form.new_product_name.data.strip()
+            )
+
+        if (
+            product is None
+            and product_name
+        ):
+            product = db.session.scalar(
+                select(Product)
+                .where(
+                    Product.household_id
+                    == household_id,
+                    Product.ingredient_id
+                    == ingredient.id,
+                    Product.name.ilike(
+                        product_name
+                    ),
+                    Product.is_active.is_(
+                        True
+                    ),
+                )
+                .order_by(
+                    Product.id
+                )
+                .limit(1)
+            )
+
         location = db.session.get(
             StorageLocation,
             form.storage_location_id.data,
@@ -2113,26 +2180,9 @@ def batch_new():
                 external_metadata = {}
 
         if (
-            barcode_value
-            and product is None
+            product is None
+            and product_name
         ):
-            product_name = (
-                form.new_product_name.data.strip()
-                if form.new_product_name.data
-                else ""
-            )
-
-            if not product_name:
-                form.new_product_name.errors.append(
-                    translate(
-                        "barcode_new_product_name_required"
-                    )
-                )
-
-                return render_template(
-                    "inventory/batch_form.html",
-                    form=form,
-                )
 
             product = Product(
                 household_id=household_id,
@@ -2204,22 +2254,25 @@ def batch_new():
 
             db.session.flush()
 
-            product_barcode = ProductBarcode(
-                product=product,
-                barcode=barcode_value,
-                barcode_type=None,
-                source=(
-                    external_metadata.get(
-                        "source"
+            if barcode_value:
+                product_barcode = (
+                    ProductBarcode(
+                        product=product,
+                        barcode=barcode_value,
+                        barcode_type=None,
+                        source=(
+                            external_metadata.get(
+                                "source"
+                            )
+                            or "manual"
+                        ),
+                        is_verified=True,
                     )
-                    or "manual"
-                ),
-                is_verified=True,
-            )
+                )
 
-            db.session.add(
-                product_barcode
-            )
+                db.session.add(
+                    product_barcode
+                )
 
             created_new_product = True
 
@@ -2275,6 +2328,10 @@ def batch_new():
         )
 
         db.session.commit()
+
+        session[
+            "inventory_last_storage_location_id"
+        ] = location.id
 
         flash(
             translate(
@@ -3698,6 +3755,9 @@ def inventory_list():
         ),
         build_location_path=(
             build_location_path
+        ),
+        get_ingredient_display_name=(
+            get_ingredient_display_name
         ),
     )
 

@@ -13,6 +13,9 @@ document.addEventListener(
         };
 
         const setupAutocomplete = wrapper => {
+            const allowCustom =
+                wrapper.dataset.allowCustom
+                === "1";
             const select =
                 wrapper.querySelector(
                     ".js-autocomplete-select"
@@ -165,8 +168,16 @@ document.addEventListener(
 
             select.hidden = true;
 
-            input.value =
+            const selectedLabel =
                 getSelectedLabel();
+
+            if (
+                selectedLabel
+                || !allowCustom
+            ) {
+                input.value =
+                    selectedLabel;
+            }
 
             input.addEventListener(
                 "focus",
@@ -223,7 +234,10 @@ document.addEventListener(
                         () => {
                             closeResults();
 
-                            if (!select.value) {
+                            if (
+                                !select.value
+                                && !allowCustom
+                            ) {
                                 input.value = "";
                             }
                         },

@@ -195,16 +195,28 @@
                                 >
                                     <div>
                                         <strong>
-                                            {% if batch.product %}
-                                                {% if batch.product.brand %}
-                                                    {{ batch.product.brand }}
-                                                    —
-                                                {% endif %}
+{% if batch.product %}
 
-                                                {{ batch.product.name }}
-                                            {% else %}
-                                                {{ t("inventory_bulk_label") }}
-                                            {% endif %}
+    {% if batch.product.brand %}
+        {{ batch.product.brand }}
+        —
+    {% endif %}
+
+    {{ batch.product.name }}
+
+{% elif batch.ingredient %}
+
+    {{
+        get_ingredient_display_name(
+            batch.ingredient
+        )
+    }}
+
+{% else %}
+
+    {{ t("inventory_bulk_label") }}
+
+{% endif %}
                                         </strong>
 
                                         {% if batch.expiry_status == "expired" %}
