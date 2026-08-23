@@ -7,6 +7,7 @@
 {% block content %}
 
 <div class="page-heading">
+
     <div>
         <h1>
             {{ t("storage_title") }}
@@ -19,65 +20,238 @@
 
     <a
         class="primary-link"
-        href="{{ url_for('inventory.location_new') }}"
+        href="{{
+            url_for(
+                'inventory.location_new'
+            )
+        }}"
     >
         {{ t("storage_add") }}
     </a>
+
 </div>
 
+
 <section class="panel">
-    <h2>
-        {{ t("storage_active") }}
-    </h2>
 
-    {% if active_tree %}
-        <div class="location-list">
-            {% for location, depth in active_tree %}
-                <article
-                    class="location-row"
-                    style="--tree-depth: {{ depth }}"
+    <div class="storage-section-heading">
+
+        <h2>
+            {{ t("storage_active") }}
+        </h2>
+
+        {% if active_tree_rows %}
+
+            <div class="storage-tree-global-actions">
+
+                <button
+                    type="button"
+                    class="link-button"
+                    id="storage-expand-all"
                 >
-                    <div class="location-main tree-item">
-                        <strong>
-                            {% if depth > 0 %}
-                                <span class="tree-marker">
-                                    ↳
+                    {{ t("storage_expand_all") }}
+                </button>
+
+                <button
+                    type="button"
+                    class="link-button"
+                    id="storage-collapse-all"
+                >
+                    {{ t("storage_collapse_all") }}
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if active_tree_rows %}
+
+        <div
+            class="storage-tree"
+            id="storage-active-tree"
+        >
+
+            {% for row in active_tree_rows %}
+
+                {% set location =
+                    row.location
+                %}
+
+                <article
+                    class="
+                        storage-tree-row
+                        {% if row.has_children %}
+                            storage-tree-parent
+                        {% endif %}
+                    "
+                    data-location-id="{{
+                        location.public_id
+                    }}"
+                    data-depth="{{
+                        row.depth
+                    }}"
+                    data-has-children="{{
+                        '1'
+                        if row.has_children
+                        else '0'
+                    }}"
+                    style="
+                        --tree-depth:
+                        {{ row.depth }};
+                    "
+                >
+
+                    <div class="storage-tree-main">
+
+                        {% if row.has_children %}
+
+                            <button
+                                type="button"
+                                class="storage-tree-toggle"
+                                aria-expanded="true"
+                                aria-label="{{
+                                    t(
+                                        'storage_toggle_group'
+                                    )
+                                }}"
+                            >
+                                <span
+                                    class="storage-tree-toggle-icon"
+                                    aria-hidden="true"
+                                >
+                                    ▼
                                 </span>
-                            {% endif %}
+                            </button>
 
-                            {{ location.name }}
-                        </strong>
+                        {% else %}
 
-                        <span class="muted">
-                            {{
-                                get_location_type_label(
-                                    location.location_type
-                                )
-                            }}
-                        </span>
-                    </div>
+                            <span
+                                class="storage-tree-toggle-spacer"
+                                aria-hidden="true"
+                            ></span>
+
+                        {% endif %}
+
+
+<div class="storage-tree-label">
+
+    <div class="storage-tree-title-row">
+
+        <strong>
+            {{ location.name }}
+        </strong>
+
+        {% if location.images %}
+
+            {% set preview_image =
+                location.images[0]
+            %}
+
+            <button
+                type="button"
+                class="storage-location-thumb"
+                data-storage-image-open
+                data-image-src="{{
+                    url_for(
+                        'inventory.storage_location_image',
+                        public_id=(
+                            preview_image.public_id
+                        )
+                    )
+                }}"
+                data-image-alt="{{
+                    location.name
+                }}"
+                title="{{
+                    t(
+                        'storage_image_view'
+                    )
+                }}"
+            >
+
+                <img
+                    src="{{
+                        url_for(
+                            'inventory.storage_location_image',
+                            public_id=(
+                                preview_image.public_id
+                            )
+                        )
+                    }}"
+                    alt="{{ location.name }}"
+                    loading="lazy"
+                >
+
+                {% if
+                    location.images
+                    | length
+                    > 1
+                %}
+
+                    <span
+                        class="
+                            storage-location-image-count
+                        "
+                    >
+                        +{{
+                            (
+                                location.images
+                                | length
+                            )
+                            - 1
+                        }}
+                    </span>
+
+                {% endif %}
+
+            </button>
+
+        {% endif %}
+
+    </div>
+
+    <span class="muted">
+        {{
+            get_location_type_label(
+                location.location_type
+            )
+        }}
+    </span>
+
+</div>
+
 
                     <div class="row-actions">
+
                         <a
                             href="{{
                                 url_for(
                                     'inventory.location_edit',
-                                    public_id=location.public_id
+                                    public_id=(
+                                        location.public_id
+                                    )
                                 )
                             }}"
                         >
                             {{ t("storage_edit") }}
                         </a>
 
+
                         <form
                             method="post"
                             action="{{
                                 url_for(
                                     'inventory.location_toggle',
-                                    public_id=location.public_id
+                                    public_id=(
+                                        location.public_id
+                                    )
                                 )
                             }}"
                         >
+
                             <input
                                 type="hidden"
                                 name="csrf_token"
@@ -88,76 +262,163 @@
                                 type="submit"
                                 class="link-button danger-link"
                             >
-                                {{ t("storage_deactivate") }}
+                                {{
+                                    t(
+                                        "storage_deactivate"
+                                    )
+                                }}
                             </button>
+
                         </form>
+
                     </div>
+
                 </article>
+
             {% endfor %}
+
         </div>
+
     {% else %}
+
         <p>
             {{ t("storage_empty") }}
         </p>
+
     {% endif %}
+
 </section>
 
-{% if inactive_tree %}
+
+{% if inactive_tree_rows %}
+
 <section class="panel">
-    <h2>
-        {{ t("storage_inactive") }}
-    </h2>
 
-    <div class="location-list">
-        {% for location, depth in inactive_tree %}
-            <article
-                class="location-row inactive-row"
-                style="--tree-depth: {{ depth }}"
-            >
-                <div class="location-main tree-item">
-                    <strong>
-                        {% if depth > 0 %}
-                            <span class="tree-marker">
-                                ↳
-                            </span>
-                        {% endif %}
+    <details class="storage-inactive-details">
 
-                        {{ location.name }}
-                    </strong>
+        <summary>
+            {{ t("storage_inactive") }}
+        </summary>
 
-                    <span class="muted">
-                        {{ t("storage_inactive_label") }}
-                    </span>
-                </div>
+        <div class="storage-inactive-list">
 
-                <div class="row-actions">
-                    <form
-                        method="post"
-                        action="{{
-                            url_for(
-                                'inventory.location_toggle',
-                                public_id=location.public_id
-                            )
-                        }}"
+            {% for row in inactive_tree_rows %}
+
+                {% set location =
+                    row.location
+                %}
+
+                <article
+                    class="location-row inactive-row"
+                    style="
+                        --tree-depth:
+                        {{ row.depth }};
+                    "
+                >
+
+                    <div
+                        class="
+                            location-main
+                            tree-item
+                        "
                     >
-                        <input
-                            type="hidden"
-                            name="csrf_token"
-                            value="{{ csrf_token() }}"
+
+                        <strong>
+
+                            {% if row.depth > 0 %}
+
+                                <span class="tree-marker">
+                                    ↳
+                                </span>
+
+                            {% endif %}
+
+                            {{ location.name }}
+
+                        </strong>
+
+                        <span class="muted">
+                            {{
+                                t(
+                                    "storage_inactive_label"
+                                )
+                            }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="row-actions">
+
+                        <form
+                            method="post"
+                            action="{{
+                                url_for(
+                                    'inventory.location_toggle',
+                                    public_id=(
+                                        location.public_id
+                                    )
+                                )
+                            }}"
                         >
 
-                        <button
-                            type="submit"
-                            class="link-button"
-                        >
-                            {{ t("storage_reactivate") }}
-                        </button>
-                    </form>
-                </div>
-            </article>
-        {% endfor %}
-    </div>
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button
+                                type="submit"
+                                class="link-button"
+                            >
+                                {{
+                                    t(
+                                        "storage_reactivate"
+                                    )
+                                }}
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    </details>
+
 </section>
+
 {% endif %}
+
+<div
+    class="storage-image-lightbox"
+    id="storage-image-lightbox"
+    hidden
+>
+
+    <button
+        type="button"
+        class="storage-image-lightbox-close"
+        aria-label="{{
+            t(
+                'storage_image_close'
+            )
+        }}"
+    >
+        ×
+    </button>
+
+    <img
+        id="storage-image-lightbox-image"
+        src=""
+        alt=""
+    >
+
+</div>
 
 {% endblock %}

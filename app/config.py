@@ -52,6 +52,24 @@ class Config:
         50 * 1024 * 1024
     )
 
+    STORAGE_LOCATION_IMAGE_UPLOAD_DIR = (
+        os.getenv(
+            "STORAGE_LOCATION_IMAGE_UPLOAD_DIR",
+            (
+                "/opt/homepantry/"
+                "var/uploads/storage-locations"
+            ),
+        )
+    )
+
+    STORAGE_LOCATION_IMAGE_MAX_SIZE = (
+        1600
+    )
+
+    STORAGE_LOCATION_IMAGE_WEBP_QUALITY = (
+        82
+    )
+
     OPEN_FOOD_FACTS_USER_AGENT = (
         os.getenv(
             "OPEN_FOOD_FACTS_USER_AGENT",

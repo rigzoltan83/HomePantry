@@ -9,10 +9,11 @@
 <section class="form-card">
     <h1>{{ page_title }}</h1>
 
-    <form
-        method="post"
-        novalidate
-    >
+<form
+    method="post"
+    enctype="multipart/form-data"
+    novalidate
+>
         {{ form.hidden_tag() }}
 
         <div class="field">
@@ -59,6 +60,77 @@
             {% endfor %}
         </div>
 
+<div class="field">
+
+    <label>
+        {{ t("storage_images_title") }}
+    </label>
+
+<div class="storage-image-upload-actions">
+
+<label
+    class="storage-image-action-button"
+    for="{{ form.new_images.id }}"
+>
+    <span
+        class="storage-image-action-icon"
+        aria-hidden="true"
+    >
+        ＋
+    </span>
+
+    <span>
+        {{ t("storage_images_choose") }}
+    </span>
+</label>
+
+        {{
+            form.new_images(
+                accept="image/*",
+                class="product-image-hidden-input"
+            )
+        }}
+
+<label
+    class="storage-image-action-button"
+    for="{{ form.camera_image.id }}"
+>
+    <span
+        class="storage-image-action-icon"
+        aria-hidden="true"
+    >
+        📷
+    </span>
+
+    <span>
+        {{ t("storage_image_camera") }}
+    </span>
+</label>
+
+        {{
+            form.camera_image(
+                accept="image/*",
+                capture="environment",
+                class="product-image-hidden-input"
+            )
+        }}
+
+    </div>
+
+    {% for error in form.new_images.errors %}
+        <div class="field-error">
+            {{ error }}
+        </div>
+    {% endfor %}
+
+    {% for error in form.camera_image.errors %}
+        <div class="field-error">
+            {{ error }}
+        </div>
+    {% endfor %}
+
+</div>
+
         <div class="form-actions">
             {{ form.submit(
                 class="primary-button auto-width"
@@ -72,5 +144,165 @@
         </div>
     </form>
 </section>
+
+{% if
+    location is defined
+    and location
+    and location.images
+%}
+
+<section class="panel storage-image-section">
+
+    <h2>
+        {{ t("storage_images_existing") }}
+    </h2>
+
+    <div class="product-image-grid">
+
+        {% for image in location.images %}
+
+            <article class="product-image-card">
+
+                <button
+                    type="button"
+                    class="
+                        storage-image-preview-button
+                    "
+                    data-storage-image-open
+                    data-image-src="{{
+                        url_for(
+                            'inventory.storage_location_image',
+                            public_id=image.public_id
+                        )
+                    }}"
+                    data-image-alt="{{
+                        location.name
+                    }}"
+                >
+
+                    <img
+                        class="product-image-preview"
+                        src="{{
+                            url_for(
+                                'inventory.storage_location_image',
+                                public_id=image.public_id
+                            )
+                        }}"
+                        alt="{{ location.name }}"
+                        loading="lazy"
+                    >
+
+                </button>
+
+                <div class="product-image-meta">
+
+                    {% if image.width and image.height %}
+                        <span>
+                            {{ image.width }}
+                            ×
+                            {{ image.height }}
+                        </span>
+                    {% endif %}
+
+                    {% if image.file_size %}
+                        <span>
+                            {{
+                                (
+                                    image.file_size
+                                    / 1024
+                                )
+                                | round(0)
+                                | int
+                            }}
+                            KB
+                        </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="product-image-actions">
+
+                    <form
+                        method="post"
+                        action="{{
+                            url_for(
+                                'inventory.storage_location_image_delete',
+                                location_public_id=(
+                                    location.public_id
+                                ),
+                                image_public_id=(
+                                    image.public_id
+                                )
+                            )
+                        }}"
+                        onsubmit="
+                            return confirm(
+                                '{{ t(
+                                    "storage_image_delete_confirm"
+                                ) }}'
+                            );
+                        "
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="
+                                link-button
+                                danger-link
+                            "
+                        >
+                            {{
+                                t(
+                                    "storage_image_delete"
+                                )
+                            }}
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<div
+    class="storage-image-lightbox"
+    id="storage-image-lightbox"
+    hidden
+>
+
+    <button
+        type="button"
+        class="storage-image-lightbox-close"
+        aria-label="{{
+            t(
+                'storage_image_close'
+            )
+        }}"
+    >
+        ×
+    </button>
+
+    <img
+        id="storage-image-lightbox-image"
+        src=""
+        alt=""
+    >
+
+</div>
+
+{% endif %}
 
 {% endblock %}

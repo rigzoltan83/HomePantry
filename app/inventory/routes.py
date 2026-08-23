@@ -40,6 +40,7 @@ from app.models import (
     ProductBarcode,
     ProductImage,
     StorageLocation,
+    StorageLocationImage,
     StockRule,
     Unit,
     UnitTranslation,
@@ -68,6 +69,11 @@ from .product_metadata import (
 from .product_images import (
     delete_product_image_file,
     save_product_image,
+)
+
+from .storage_location_images import (
+    delete_storage_location_image_file,
+    save_storage_location_image,
 )
 
 LOCATION_TYPES = [
@@ -116,6 +122,51 @@ def get_current_household_id():
         get_current_membership()
         .household_id
     )
+
+
+def save_storage_location_form_images(
+    storage_location,
+    form,
+):
+    saved_images = []
+
+    image_files = list(
+        form.new_images.data
+        or []
+    )
+
+    camera_image = (
+        form.camera_image.data
+    )
+
+    if (
+        camera_image
+        and camera_image.filename
+    ):
+        image_files.append(
+            camera_image
+        )
+
+    for image_file in image_files:
+        if (
+            image_file is None
+            or not image_file.filename
+        ):
+            continue
+
+        saved_image = (
+            save_storage_location_image(
+                storage_location,
+                image_file,
+            )
+        )
+
+        if saved_image is not None:
+            saved_images.append(
+                saved_image
+            )
+
+    return saved_images
 
 
 def get_location_or_404(
@@ -328,10 +379,55 @@ def locations():
         inactive_locations
     )
 
+    def build_tree_rows(
+        tree,
+    ):
+        rows = []
+
+        for index, (
+            location,
+            depth,
+        ) in enumerate(tree):
+            next_depth = None
+
+            if index + 1 < len(tree):
+                next_depth = (
+                    tree[index + 1][1]
+                )
+
+            rows.append(
+                {
+                    "location": location,
+                    "depth": depth,
+                    "has_children": (
+                        next_depth is not None
+                        and next_depth > depth
+                    ),
+                }
+            )
+
+        return rows
+
+    active_tree_rows = (
+        build_tree_rows(
+            active_tree
+        )
+    )
+
+    inactive_tree_rows = (
+        build_tree_rows(
+            inactive_tree
+        )
+    )
+
     return render_template(
         "inventory/locations.html",
-        active_tree=active_tree,
-        inactive_tree=inactive_tree,
+        active_tree_rows=(
+            active_tree_rows
+        ),
+        inactive_tree_rows=(
+            inactive_tree_rows
+        ),
         get_location_type_label=(
             get_location_type_label
         ),
@@ -367,6 +463,18 @@ def location_new():
 
     form.sort_order.label.text = (
         translate("field_sort_order")
+    )
+
+    form.new_images.label.text = (
+        translate(
+            "storage_images_upload"
+        )
+    )
+
+    form.camera_image.label.text = (
+        translate(
+            "storage_image_camera"
+        )
     )
 
     form.submit.label.text = translate(
@@ -426,7 +534,44 @@ def location_new():
             location
         )
 
-        db.session.commit()
+        db.session.flush()
+
+        saved_images = []
+
+        try:
+            saved_images = (
+                save_storage_location_form_images(
+                    location,
+                    form,
+                )
+            )
+
+            db.session.commit()
+
+        except ValueError:
+            db.session.rollback()
+
+            for saved_image in (
+                saved_images
+            ):
+                delete_storage_location_image_file(
+                    saved_image
+                )
+
+            flash(
+                translate(
+                    "storage_image_invalid"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "inventory/location_form.html",
+                form=form,
+                page_title=translate(
+                    "storage_new_title"
+                ),
+            )
 
         flash(
             translate("storage_created"),
@@ -485,6 +630,18 @@ def location_edit(
 
     form.sort_order.label.text = (
         translate("field_sort_order")
+    )
+
+    form.new_images.label.text = (
+        translate(
+            "storage_images_upload"
+        )
+    )
+
+    form.camera_image.label.text = (
+        translate(
+            "storage_image_camera"
+        )
     )
 
     form.submit.label.text = translate(
@@ -546,7 +703,43 @@ def location_edit(
             form.sort_order.data
         )
 
-        db.session.commit()
+        saved_images = []
+
+        try:
+            saved_images = (
+                save_storage_location_form_images(
+                    location,
+                    form,
+                )
+            )
+
+            db.session.commit()
+
+        except ValueError:
+            db.session.rollback()
+
+            for saved_image in (
+                saved_images
+            ):
+                delete_storage_location_image_file(
+                    saved_image
+                )
+
+            flash(
+                translate(
+                    "storage_image_invalid"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "inventory/location_form.html",
+                form=form,
+                page_title=translate(
+                    "storage_edit_title"
+                ),
+                location=location,
+            )
 
         flash(
             translate("storage_updated"),
@@ -566,6 +759,114 @@ def location_edit(
             "storage_edit_title"
         ),
         location=location,
+    )
+
+
+@bp.get(
+    "/storage-location-images/"
+    "<uuid:public_id>"
+)
+@login_required
+def storage_location_image(
+    public_id,
+):
+    household_id = (
+        get_current_household_id()
+    )
+
+    image = db.session.scalar(
+        select(StorageLocationImage)
+        .join(
+            StorageLocation,
+            StorageLocation.id
+            == StorageLocationImage
+            .storage_location_id,
+        )
+        .where(
+            StorageLocationImage.public_id
+            == public_id,
+            StorageLocation.household_id
+            == household_id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    image_root = (
+        current_app.config[
+            "STORAGE_LOCATION_IMAGE_UPLOAD_DIR"
+        ]
+    )
+
+    directory = os.path.join(
+        image_root,
+        str(
+            image.storage_location
+            .public_id
+        ),
+    )
+
+    return send_from_directory(
+        directory,
+        image.stored_filename,
+        mimetype="image/webp",
+        max_age=86400,
+    )
+
+
+@bp.post(
+    "/locations/"
+    "<uuid:location_public_id>/images/"
+    "<uuid:image_public_id>/delete"
+)
+@login_required
+def storage_location_image_delete(
+    location_public_id,
+    image_public_id,
+):
+    location = get_location_or_404(
+        location_public_id
+    )
+
+    image = db.session.scalar(
+        select(StorageLocationImage)
+        .where(
+            StorageLocationImage.public_id
+            == image_public_id,
+            StorageLocationImage
+            .storage_location_id
+            == location.id,
+        )
+    )
+
+    if image is None:
+        abort(404)
+
+    delete_storage_location_image_file(
+        image
+    )
+
+    db.session.delete(
+        image
+    )
+
+    db.session.commit()
+
+    flash(
+        translate(
+            "storage_image_deleted"
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "inventory.location_edit",
+            public_id=(
+                location.public_id
+            ),
+        )
     )
 
 

@@ -3,6 +3,26 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"storage_image_view": "Tárhelykép megnyitása",
+"storage_images_title": "Tárhely képei",
+"storage_images_upload": "Képek feltöltése",
+"storage_images_choose": "Képek kiválasztása",
+"storage_image_camera": "Fénykép készítése",
+"storage_images_existing": "Feltöltött képek",
+"storage_image_delete": "Kép törlése",
+"storage_image_delete_confirm": (
+    "Biztosan törlöd ezt a képet?"
+),
+"storage_image_deleted": "A kép törölve.",
+"storage_image_invalid": (
+    "A kiválasztott kép nem érvényes."
+),
+"storage_image_close": "Kép bezárása",
+"storage_expand_all": "Összes kinyitása",
+"storage_collapse_all": "Összes összecsukása",
+"storage_toggle_group": (
+    "Tárhelycsoport kinyitása vagy összecsukása"
+),
 "movement_col_location": "Tárhely",
 "inventory_location_filter_all": (
     "Összes tárhely"
@@ -799,6 +819,26 @@ TRANSLATIONS = {
     },
 
     "en": {
+"storage_image_view": "View storage image",
+"storage_images_title": "Storage images",
+"storage_images_upload": "Upload images",
+"storage_images_choose": "Choose images",
+"storage_image_camera": "Take photo",
+"storage_images_existing": "Uploaded images",
+"storage_image_delete": "Delete image",
+"storage_image_delete_confirm": (
+    "Are you sure you want to delete this image?"
+),
+"storage_image_deleted": "Image deleted.",
+"storage_image_invalid": (
+    "The selected image is invalid."
+),
+"storage_image_close": "Close image",
+"storage_expand_all": "Expand all",
+"storage_collapse_all": "Collapse all",
+"storage_toggle_group": (
+    "Expand or collapse storage group"
+),
 "movement_col_location": "Storage location",
 "inventory_location_filter_all": (
     "All storage locations"

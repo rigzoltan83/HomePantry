@@ -2584,3 +2584,407 @@ body.modal-open {
 .js-inventory-summary[hidden] {
     display: none !important;
 }
+
+.storage-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.storage-section-heading h2 {
+    margin: 0;
+}
+
+.storage-tree-global-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.storage-tree {
+    display: flex;
+    flex-direction: column;
+}
+
+.storage-tree-row[hidden] {
+    display: none !important;
+}
+
+.storage-tree-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    min-height: 48px;
+
+    padding:
+        8px
+        0
+        8px
+        calc(
+            var(--tree-depth, 0)
+            * 22px
+        );
+
+    border-top: 1px solid
+        rgba(127, 127, 127, 0.18);
+}
+
+.storage-tree-row:first-child {
+    border-top: 0;
+}
+
+.storage-tree-parent {
+    font-weight: 500;
+}
+
+.storage-tree-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    min-width: 0;
+}
+
+.storage-tree-toggle,
+.storage-tree-toggle-spacer {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+}
+
+.storage-tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+}
+
+.storage-tree-toggle:hover {
+    background:
+        rgba(
+            127,
+            127,
+            127,
+            0.12
+        );
+}
+
+.storage-tree-toggle-icon {
+    display: inline-block;
+
+    width: 18px;
+
+    text-align: center;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.storage-tree-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    min-width: 0;
+}
+
+.storage-tree-label strong {
+    overflow-wrap: anywhere;
+}
+
+.storage-tree-row.is-collapsed {
+    margin-bottom: 1px;
+}
+
+.storage-inactive-details > summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.storage-inactive-list {
+    margin-top: 14px;
+}
+
+@media (max-width: 700px) {
+
+    .storage-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .storage-tree-row {
+        align-items: flex-start;
+        flex-direction: column;
+
+        gap: 5px;
+
+        padding-left:
+            calc(
+                var(--tree-depth, 0)
+                * 14px
+            );
+    }
+
+    .storage-tree-row .row-actions {
+        margin-left: 38px;
+    }
+
+    .storage-tree-global-actions {
+        gap: 16px;
+    }
+}
+
+.storage-image-section {
+    margin-top: 20px;
+}
+
+.storage-image-preview-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    cursor: zoom-in;
+}
+
+.storage-image-preview-button img {
+    width: 100%;
+}
+
+.storage-image-lightbox[hidden] {
+    display: none !important;
+}
+
+.storage-image-lightbox {
+    position: fixed;
+    z-index: 10000;
+
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background:
+        rgba(
+            0,
+            0,
+            0,
+            0.88
+        );
+}
+
+.storage-image-lightbox img {
+    display: block;
+
+    max-width: 96vw;
+    max-height: 92vh;
+
+    object-fit: contain;
+
+    border-radius: 8px;
+}
+
+.storage-image-lightbox-close {
+    position: absolute;
+
+    top: 12px;
+    right: 18px;
+
+    width: 44px;
+    height: 44px;
+
+    border: 0;
+    border-radius: 50%;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.14
+        );
+
+    color: white;
+
+    font-size: 32px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.storage-lightbox-open {
+    overflow: hidden;
+}
+
+.storage-tree-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.storage-location-thumb {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 42px;
+
+    padding: 0;
+
+    border: 1px solid
+        rgba(127, 127, 127, 0.28);
+    border-radius: 7px;
+
+    overflow: hidden;
+
+    background: transparent;
+
+    cursor: zoom-in;
+}
+
+.storage-location-thumb:hover {
+    border-color:
+        rgba(127, 127, 127, 0.7);
+}
+
+.storage-location-thumb img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.storage-location-image-count {
+    position: absolute;
+
+    right: 2px;
+    bottom: 2px;
+
+    min-width: 20px;
+
+    padding: 2px 5px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(
+            0,
+            0,
+            0,
+            0.72
+        );
+
+    color: #fff;
+
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+/* Storage image upload */
+
+.storage-image-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    margin-top: 8px;
+}
+
+.storage-image-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    min-height: 46px;
+
+    padding:
+        10px
+        16px;
+
+    border: 1px solid
+        rgba(127, 127, 127, 0.42);
+
+    border-radius: 9px;
+
+    background:
+        rgba(127, 127, 127, 0.12);
+
+    color: inherit;
+
+    font-weight: 600;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.05s ease;
+}
+
+.storage-image-action-button:hover {
+    background:
+        rgba(127, 127, 127, 0.22);
+
+    border-color:
+        rgba(127, 127, 127, 0.72);
+}
+
+.storage-image-action-button:active {
+    transform:
+        translateY(1px);
+}
+
+.storage-image-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 22px;
+
+    font-size: 20px;
+    line-height: 1;
+}
+
+@media (max-width: 700px) {
+
+    .storage-image-upload-actions {
+        flex-direction: column;
+    }
+
+    .storage-image-action-button {
+        width: 100%;
+    }
+
+    .storage-location-thumb {
+        width: 48px;
+        height: 38px;
+    }
+}

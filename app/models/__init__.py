@@ -30,6 +30,7 @@ from .recipe import (
 )
 from .storage_location import (
     StorageLocation,
+    StorageLocationImage,
 )
 from .stock_rule import (
     StockRule,
@@ -65,6 +66,7 @@ __all__ = [
     "RecipeIngredient",
     "RecipeTag",
     "StorageLocation",
+    "StorageLocationImage",
     "StockRule",
     "Unit",
     "UnitTranslation",

@@ -57,6 +57,34 @@ class StorageLocationForm(FlaskForm):
         ],
     )
 
+    new_images = MultipleFileField(
+        validators=[
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                "JPG, PNG vagy WEBP kép tölthető fel.",
+            ),
+        ],
+    )
+
+    camera_image = FileField(
+        validators=[
+            FileAllowed(
+                [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp",
+                ],
+                "JPG, PNG vagy WEBP kép tölthető fel.",
+            ),
+        ],
+    )
+
     submit = SubmitField()
 
 
