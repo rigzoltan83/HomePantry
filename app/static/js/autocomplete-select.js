@@ -227,24 +227,54 @@ document.addEventListener(
                 }
             );
 
-            input.addEventListener(
-                "blur",
-                () => {
-                    window.setTimeout(
-                        () => {
-                            closeResults();
+input.addEventListener(
+    "blur",
+    () => {
+        window.setTimeout(
+            () => {
+                if (!select.value) {
+                    const typedValue =
+                        normalizeText(
+                            input.value
+                        );
 
-                            if (
-                                !select.value
-                                && !allowCustom
-                            ) {
-                                input.value = "";
+                    const exactMatches =
+                        getOptions().filter(
+                            option => {
+                                if (
+                                    option.disabled
+                                    || !option.value
+                                    || option.value
+                                        === "0"
+                                ) {
+                                    return false;
+                                }
+
+                                return normalizeText(
+                                    option.textContent
+                                ) === typedValue;
                             }
-                        },
-                        150
-                    );
+                        );
+
+                    if (
+                        typedValue
+                        && exactMatches.length
+                        === 1
+                    ) {
+                        chooseOption(
+                            exactMatches[0]
+                        );
+                    } else {
+                        input.value = "";
+                    }
                 }
-            );
+
+                closeResults();
+            },
+            150
+        );
+    }
+);
         };
 
         document
