@@ -3026,3 +3026,170 @@ body.modal-open {
     line-height: 1.2;
     white-space: nowrap;
 }
+
+.recipe-online-search-form {
+    margin: 0;
+}
+
+.recipe-online-search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.recipe-online-search-row input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.recipe-online-result-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.recipe-online-result-heading h2 {
+    margin: 0;
+}
+
+.recipe-online-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(280px, 1fr)
+        );
+    gap: 18px;
+}
+
+.recipe-online-card {
+    overflow: hidden;
+
+    border: 1px solid
+        rgba(127, 127, 127, 0.22);
+
+    border-radius: 10px;
+}
+
+.recipe-online-image-wrap {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+}
+
+.recipe-online-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.recipe-online-card-body {
+    padding: 14px;
+}
+
+.recipe-online-card-body h3 {
+    margin:
+        0
+        0
+        8px;
+}
+
+.recipe-online-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    margin-bottom: 12px;
+
+    font-size: 0.9rem;
+}
+
+.recipe-online-meta span:not(:last-child)::after {
+    content: " · ";
+}
+
+.recipe-online-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    margin-top: 10px;
+
+    font-size: 0.92rem;
+}
+
+.recipe-online-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+
+    .recipe-online-search-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .recipe-online-search-row
+    .primary-button {
+        width: 100%;
+    }
+
+    .recipe-online-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recipe-online-filters {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        );
+
+    gap: 14px;
+
+    margin-top: 16px;
+}
+
+.recipe-online-filters .field {
+    margin: 0;
+}
+
+.recipe-online-filters select {
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+
+    .recipe-online-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recipe-import-notice {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+
+    border: 1px solid
+        rgba(127, 127, 127, 0.28);
+
+    border-radius: 8px;
+
+    background:
+        rgba(127, 127, 127, 0.08);
+}
+
+.recipe-import-notice strong {
+    display: block;
+    margin-bottom: 4px;
+}

@@ -12,11 +12,43 @@
         {{ page_title }}
     </h1>
 
+{% if online_import | default(false) %}
+
+    <div class="form-info recipe-import-notice">
+
+        <strong>
+            {{ t("recipe_online_import_notice_title") }}
+        </strong>
+
+        <div>
+            {{ t("recipe_online_import_notice") }}
+        </div>
+
+    </div>
+
+{% endif %}
+
     <form
         method="post"
         enctype="multipart/form-data"
         novalidate
     >
+{% if online_import | default(false) %}
+
+    <input
+        type="hidden"
+        name="import_provider"
+        value="themealdb"
+    >
+
+    <input
+        type="hidden"
+        name="import_id"
+        value="{{ request.args.get('import_id', '') }}"
+    >
+
+{% endif %}
+
         {{ form.hidden_tag() }}
 
         <div class="field">

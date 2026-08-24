@@ -19,6 +19,18 @@ class Config:
         .rstrip("/")
     )
 
+    THEMEALDB_API_KEY = os.getenv(
+        "THEMEALDB_API_KEY",
+        "1",
+    )
+
+    THEMEALDB_API_BASE_URL = (
+        "https://www.themealdb.com/"
+        "api/json/v1"
+    )
+
+    ONLINE_RECIPE_TIMEOUT = 15
+
     DEFAULT_TIMEZONE = os.getenv(
         "DEFAULT_TIMEZONE",
         "Europe/Budapest",

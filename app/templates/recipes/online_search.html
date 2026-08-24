@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("recipe_online_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+
+    <div>
+
+        <h1>
+            {{ t("recipe_online_title") }}
+        </h1>
+
+        <p class="muted">
+            {{ t("recipe_online_description") }}
+        </p>
+
+    </div>
+
+    <a
+        href="{{
+            url_for(
+                'recipes.index'
+            )
+        }}"
+    >
+        {{ t("recipe_back_to_list") }}
+    </a>
+
+</div>
+
+
+<section class="panel">
+
+    <form
+        method="get"
+        class="recipe-online-search-form"
+    >
+
+        <div class="recipe-online-search-row">
+
+            <input
+                type="search"
+                name="q"
+                value="{{ query }}"
+                minlength="2"
+                placeholder="{{
+                    t(
+                        'recipe_online_placeholder'
+                    )
+                }}"
+                autocomplete="off"
+            >
+
+            <button
+                type="submit"
+                class="primary-button auto-width"
+            >
+                {{ t("recipe_search") }}
+            </button>
+
+        </div>
+
+<div class="recipe-online-filters">
+
+    <div class="field">
+
+        <label for="online-cuisine">
+            {{ t("recipe_filter_cuisine") }}
+        </label>
+
+        <select
+            id="online-cuisine"
+            name="cuisine"
+        >
+
+            <option value="">
+                {{ t("recipe_filter_all") }}
+            </option>
+
+            {% for tag in cuisine_choices %}
+
+                <option
+                    value="{{ tag.key }}"
+                    {% if cuisine_key == tag.key %}
+                        selected
+                    {% endif %}
+                >
+                    {{ tag.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+
+    <div class="field">
+
+        <label for="online-food-type">
+            {{ t("recipe_filter_food_type") }}
+        </label>
+
+        <select
+            id="online-food-type"
+            name="food_type"
+        >
+
+            <option value="">
+                {{ t("recipe_filter_all") }}
+            </option>
+
+            {% for tag in food_type_choices %}
+
+                <option
+                    value="{{ tag.key }}"
+                    {% if food_type_key == tag.key %}
+                        selected
+                    {% endif %}
+                >
+                    {{ tag.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+
+    <div class="field">
+
+        <label for="online-diet">
+            {{ t("recipe_filter_diet") }}
+        </label>
+
+        <select
+            id="online-diet"
+            name="diet"
+        >
+
+            <option value="">
+                {{ t("recipe_filter_all") }}
+            </option>
+
+            {% for tag in diet_choices %}
+
+                <option
+                    value="{{ tag.key }}"
+                    {% if diet_key == tag.key %}
+                        selected
+                    {% endif %}
+                >
+                    {{ tag.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+</div>
+
+<p class="field-help">
+    {{ t("recipe_online_filter_help") }}
+</p>
+
+    </form>
+
+</section>
+
+
+{% if search_error %}
+
+<section class="panel">
+
+    <div class="field-error">
+        {{ search_error }}
+    </div>
+
+</section>
+
+{% endif %}
+
+
+{% if query and not search_error %}
+
+<section class="panel">
+
+    <div class="recipe-online-result-heading">
+
+        <h2>
+            {{ t("recipe_online_results") }}
+        </h2>
+
+        <span class="muted">
+            {{ results | length }}
+        </span>
+
+    </div>
+
+
+    {% if results %}
+
+        <div class="recipe-online-grid">
+
+            {% for item in results %}
+
+                <article class="recipe-online-card">
+
+                    {% if item.image_url %}
+
+                        <div class="recipe-online-image-wrap">
+
+                            <img
+                                class="recipe-online-image"
+                                src="{{ item.image_url }}"
+                                alt="{{ item.title }}"
+                                loading="lazy"
+                            >
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="recipe-online-card-body">
+
+                        <h3>
+                            {{ item.title }}
+                        </h3>
+
+
+                        <div class="recipe-online-meta">
+
+                            {% if item.area %}
+                                <span>
+                                    {{ item.area }}
+                                </span>
+                            {% endif %}
+
+                            {% if item.category %}
+                                <span>
+                                    {{ item.category }}
+                                </span>
+                            {% endif %}
+
+                            <span>
+                                {{
+                                    item.ingredients
+                                    | length
+                                }}
+                                {{
+                                    t(
+                                        "recipe_online_ingredients"
+                                    )
+                                }}
+                            </span>
+
+                        </div>
+
+
+                        {% if item.ingredients %}
+
+                            <div class="recipe-online-preview">
+
+                                {% for ingredient
+                                   in item.ingredients[:5] %}
+
+                                    <div>
+                                        {% if ingredient.measure %}
+                                            <span class="muted">
+                                                {{
+                                                    ingredient.measure
+                                                }}
+                                            </span>
+                                        {% endif %}
+
+                                        {{ ingredient.name }}
+                                    </div>
+
+                                {% endfor %}
+
+                                {% if
+                                    item.ingredients
+                                    | length
+                                    > 5
+                                %}
+
+                                    <div class="muted">
+                                        +{{
+                                            (
+                                                item.ingredients
+                                                | length
+                                            )
+                                            - 5
+                                        }}
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <div class="recipe-online-actions">
+
+                            {% if item.source_url %}
+
+                                <a
+                                    href="{{
+                                        item.source_url
+                                    }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {{
+                                        t(
+                                            "recipe_online_source"
+                                        )
+                                    }}
+                                </a>
+
+<a
+    class="primary-link"
+    href="{{
+        url_for(
+            'recipes.new',
+            import_provider='themealdb',
+            import_id=item.external_id
+        )
+    }}"
+>
+    {{ t("recipe_online_import") }}
+</a>
+
+                            {% endif %}
+
+                            <span class="muted">
+                                TheMealDB
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="muted">
+            {{ t("recipe_online_empty") }}
+        </p>
+
+    {% endif %}
+
+</section>
+
+{% endif %}
+
+{% endblock %}

@@ -36,6 +36,13 @@ from app.models import (
 
 from . import bp
 from .forms import RecipeForm
+from .online_recipes import (
+    THEMEALDB_CUISINE_MAP,
+    THEMEALDB_DIET_MAP,
+    THEMEALDB_FOOD_TYPE_MAP,
+    search_themealdb_recipes,
+    get_themealdb_recipe,
+)
 from .recipe_images import (
     delete_recipe_image_file,
     save_recipe_image,
@@ -713,6 +720,200 @@ def index():
     )
 
 
+@bp.get("/online-search")
+@login_required
+def online_search():
+    query = (
+        request.args.get(
+            "q",
+            "",
+        )
+        .strip()
+    )
+
+    cuisine_key = (
+        request.args.get(
+            "cuisine",
+            "",
+        )
+        .strip()
+    )
+
+    food_type_key = (
+        request.args.get(
+            "food_type",
+            "",
+        )
+        .strip()
+    )
+
+    diet_key = (
+        request.args.get(
+            "diet",
+            "",
+        )
+        .strip()
+    )
+
+    results = []
+    search_error = None
+
+    if (
+        food_type_key
+        and diet_key
+    ):
+        search_error = translate(
+            "recipe_online_category_conflict"
+        )
+
+    area = (
+        THEMEALDB_CUISINE_MAP.get(
+            cuisine_key
+        )
+    )
+
+    category = None
+
+    if food_type_key:
+        category = (
+            THEMEALDB_FOOD_TYPE_MAP.get(
+                food_type_key
+            )
+        )
+
+    elif diet_key:
+        category = (
+            THEMEALDB_DIET_MAP.get(
+                diet_key
+            )
+        )
+
+    if (
+        len(query) >= 2
+        and search_error is None
+    ):
+        try:
+            results = (
+                search_themealdb_recipes(
+                    query,
+                    area=area,
+                    category=category,
+                )
+            )
+
+        except RuntimeError:
+            search_error = translate(
+                "recipe_online_error"
+            )
+
+    active_tags = (
+        get_active_recipe_tags()
+    )
+
+    cuisine_choices = [
+        tag
+        for tag in active_tags
+        if (
+            tag.group_name
+            == "cuisine"
+            and tag.key
+            in THEMEALDB_CUISINE_MAP
+        )
+    ]
+
+    food_type_choices = [
+        tag
+        for tag in active_tags
+        if (
+            tag.group_name
+            == "food_type"
+            and tag.key
+            in THEMEALDB_FOOD_TYPE_MAP
+        )
+    ]
+
+    diet_choices = [
+        tag
+        for tag in active_tags
+        if (
+            tag.group_name
+            == "diet"
+            and tag.key
+            in THEMEALDB_DIET_MAP
+        )
+    ]
+
+    return render_template(
+        "recipes/online_search.html",
+        query=query,
+        results=results,
+        search_error=search_error,
+        cuisine_key=cuisine_key,
+        food_type_key=food_type_key,
+        diet_key=diet_key,
+        cuisine_choices=cuisine_choices,
+        food_type_choices=(
+            food_type_choices
+        ),
+        diet_choices=diet_choices,
+    )
+
+
+def find_exact_english_ingredient(
+    name,
+):
+    normalized_name = (
+        str(name or "")
+        .strip()
+        .casefold()
+    )
+
+    if not normalized_name:
+        return None
+
+    ingredients = db.session.scalars(
+        select(Ingredient)
+        .where(
+            Ingredient.is_active.is_(
+                True
+            )
+        )
+    ).all()
+
+    matches = []
+
+    for ingredient in ingredients:
+        english_name = next(
+            (
+                translation.name
+                for translation
+                in ingredient.translations
+                if (
+                    translation.language_code
+                    == "en"
+                    and translation.name
+                )
+            ),
+            None,
+        )
+
+        if (
+            english_name
+            and english_name
+            .strip()
+            .casefold()
+            == normalized_name
+        ):
+            matches.append(
+                ingredient
+            )
+
+    if len(matches) != 1:
+        return None
+
+    return matches[0]
+
+
 @bp.route(
     "/new",
     methods=[
@@ -728,6 +929,32 @@ def new():
 
     form = RecipeForm()
 
+    import_provider = (
+        request.values.get(
+            "import_provider",
+            "",
+        )
+        .strip()
+        .lower()
+    )
+
+    import_id = (
+        request.values.get(
+            "import_id",
+            "",
+        )
+        .strip()
+    )
+
+    recipe_ingredient_rows = []
+    selected_tag_ids = set()
+
+    online_import = (
+        import_provider
+        == "themealdb"
+        and bool(import_id)
+    )
+
     available_tags = (
         get_active_recipe_tags()
     )
@@ -741,6 +968,145 @@ def new():
     configure_recipe_form(
         form
     )
+
+    imported_recipe = None
+
+    if (
+        import_provider
+        == "themealdb"
+        and import_id
+    ):
+        try:
+            imported_recipe = (
+                get_themealdb_recipe(
+                    import_id
+                )
+            )
+
+        except RuntimeError:
+            imported_recipe = None
+
+            if not form.is_submitted():
+                flash(
+                    translate(
+                        "recipe_online_error"
+                    ),
+                    "error",
+                )
+
+    if (
+        not form.is_submitted()
+        and imported_recipe
+        is not None
+    ):
+        online_import = True
+
+        form.title.data = (
+            imported_recipe[
+                "title"
+            ]
+        )
+
+        form.instructions_text.data = (
+            imported_recipe[
+                "instructions"
+            ]
+        )
+
+        cuisine_key = next(
+            (
+                key
+                for key, value
+                in (
+                    THEMEALDB_CUISINE_MAP
+                    .items()
+                )
+                if value
+                == imported_recipe[
+                    "area"
+                ]
+            ),
+            None,
+        )
+
+        food_type_key = next(
+            (
+                key
+                for key, value
+                in (
+                    THEMEALDB_FOOD_TYPE_MAP
+                    .items()
+                )
+                if value
+                == imported_recipe[
+                    "category"
+                ]
+            ),
+            None,
+        )
+
+        diet_key = next(
+            (
+                key
+                for key, value
+                in (
+                    THEMEALDB_DIET_MAP
+                    .items()
+                )
+                if value
+                == imported_recipe[
+                    "category"
+                ]
+            ),
+            None,
+        )
+
+        imported_tag_keys = {
+            key
+            for key in (
+                cuisine_key,
+                food_type_key,
+                diet_key,
+            )
+            if key
+        }
+
+        selected_tag_ids = {
+            tag.id
+            for tag in available_tags
+            if tag.key
+            in imported_tag_keys
+        }
+
+        for item in (
+            imported_recipe[
+                "ingredients"
+            ]
+        ):
+            matched_ingredient = (
+                find_exact_english_ingredient(
+                    item["name"]
+                )
+            )
+
+            recipe_ingredient_rows.append(
+                {
+                    "ingredient_id": (
+                        matched_ingredient.id
+                        if matched_ingredient
+                        else 0
+                    ),
+                    "name": (
+                        item["name"]
+                    ),
+                    "quantity": "",
+                    "unit_id": 0,
+                    "unit_text": (
+                        item["measure"]
+                        or ""
+                    ),
+                }
+            )
 
     if form.validate_on_submit():
         prep_time = (
@@ -793,7 +1159,85 @@ def new():
                 if form.instructions_text.data
                 else None
             ),
-            source_type="manual",
+            source_type=(
+                "themealdb"
+                if (
+                    import_provider
+                    == "themealdb"
+                    and import_id
+                )
+                else "manual"
+            ),
+            source_id=(
+                import_id
+                if (
+                    import_provider
+                    == "themealdb"
+                    and import_id
+                )
+                else None
+            ),
+            source_url=(
+                imported_recipe.get(
+                    "source_url"
+                )
+                if imported_recipe
+                is not None
+                else None
+            ),
+            external_data=(
+                {
+                    "provider": (
+                        "themealdb"
+                    ),
+                    "external_id": (
+                        import_id
+                    ),
+                    "category": (
+                        imported_recipe.get(
+                            "category"
+                        )
+                    ),
+                    "area": (
+                        imported_recipe.get(
+                            "area"
+                        )
+                    ),
+                    "image_url": (
+                        imported_recipe.get(
+                            "image_url"
+                        )
+                    ),
+                    "youtube_url": (
+                        imported_recipe.get(
+                            "youtube_url"
+                        )
+                    ),
+                }
+                if (
+                    import_provider
+                    == "themealdb"
+                    and import_id
+                    and imported_recipe
+                    is not None
+                )
+                else (
+                    {
+                        "provider": (
+                            "themealdb"
+                        ),
+                        "external_id": (
+                            import_id
+                        ),
+                    }
+                    if (
+                        import_provider
+                        == "themealdb"
+                        and import_id
+                    )
+                    else None
+                )
+            ),
             is_active=True,
         )
 
@@ -905,9 +1349,15 @@ def new():
             "recipe_new_title"
         ),
         tag_groups=tag_groups,
-        selected_tag_ids=set(),
-        recipe_ingredient_rows=[],
+        selected_tag_ids=(
+            selected_tag_ids
+        ),
+        recipe_ingredient_rows=(
+            recipe_ingredient_rows
+        ),
+        online_import=online_import,
     )
+
 
 @bp.route(
     "/<uuid:public_id>/edit",

@@ -18,6 +18,18 @@
         </p>
     </div>
 
+<div class="row-actions">
+
+    <a
+        href="{{
+            url_for(
+                'recipes.online_search'
+            )
+        }}"
+    >
+        {{ t("recipe_online_action") }}
+    </a>
+
     <a
         class="primary-link"
         href="{{
@@ -28,6 +40,8 @@
     >
         + {{ t("recipe_new_title") }}
     </a>
+
+</div>
 
 </div>
 

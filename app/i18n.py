@@ -3,6 +3,53 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_online_import": "Importálás",
+"recipe_online_import_notice_title": (
+    "Online recept előtöltve"
+),
+"recipe_online_import_notice": (
+    "Mentés előtt ellenőrizd a receptet. "
+    "Csak az egyértelműen azonosítható "
+    "alapanyagok lettek automatikusan "
+    "összekapcsolva a HomePantry "
+    "alapanyag-törzsével."
+),
+"recipe_filter_cuisine": "Konyha",
+"recipe_filter_food_type": "Ételtípus",
+"recipe_filter_diet": "Étrend",
+"recipe_filter_all": "Mind",
+"recipe_online_filter_help": (
+    "Csak az online adatbázissal "
+    "egyértelműen megfeleltethető "
+    "szűrők jelennek meg. "
+    "Ételtípus és étrend egyszerre "
+    "nem használható."
+),
+"recipe_online_category_conflict": (
+    "Az online adatbázisban az ételtípus "
+    "és az étrend ugyanazt a kategóriamezőt "
+    "használja, ezért egyszerre csak "
+    "az egyik választható."
+),
+"recipe_online_title": "Online receptkeresés",
+"recipe_online_description": (
+    "Keress recepteket online "
+    "receptadatbázisokban."
+),
+"recipe_online_action": "Online keresés",
+"recipe_online_placeholder": (
+    "Pl. chicken, pasta, curry..."
+),
+"recipe_online_results": "Találatok",
+"recipe_online_ingredients": "hozzávaló",
+"recipe_online_source": "Forrás megnyitása",
+"recipe_online_empty": "Nincs találat.",
+"recipe_online_error": (
+    "Az online receptszolgáltatás "
+    "jelenleg nem érhető el."
+),
+"recipe_back_to_list": "Vissza a receptekhez",
+"recipe_search": "Keresés",
 "inventory_edit_title": "Készlettétel szerkesztése",
 "inventory_edit_action": "Szerkesztés",
 "inventory_edit_submit": "Módosítások mentése",
@@ -837,6 +884,49 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_online_import": "Import",
+"recipe_online_import_notice_title": (
+    "Online recipe prefilled"
+),
+"recipe_online_import_notice": (
+    "Review the recipe before saving. "
+    "Only ingredients with an exact, "
+    "unambiguous match were linked "
+    "automatically to HomePantry."
+),
+"recipe_filter_cuisine": "Cuisine",
+"recipe_filter_food_type": "Food type",
+"recipe_filter_diet": "Diet",
+"recipe_filter_all": "All",
+"recipe_online_filter_help": (
+    "Only filters with an exact mapping "
+    "to the online database are shown. "
+    "Food type and diet cannot be used "
+    "at the same time."
+),
+"recipe_online_category_conflict": (
+    "The online database uses the same "
+    "category field for food type and diet, "
+    "so only one can be selected at a time."
+),
+"recipe_online_title": "Online recipe search",
+"recipe_online_description": (
+    "Search online recipe databases."
+),
+"recipe_online_action": "Online search",
+"recipe_online_placeholder": (
+    "E.g. chicken, pasta, curry..."
+),
+"recipe_online_results": "Results",
+"recipe_online_ingredients": "ingredients",
+"recipe_online_source": "Open source",
+"recipe_online_empty": "No results found.",
+"recipe_online_error": (
+    "The online recipe service "
+    "is currently unavailable."
+),
+"recipe_back_to_list": "Back to recipes",
+"recipe_search": "Search",
 "inventory_edit_title": "Edit inventory item",
 "inventory_edit_action": "Edit",
 "inventory_edit_submit": "Save changes",
