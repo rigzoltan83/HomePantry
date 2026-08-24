@@ -1,0 +1,24 @@
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: homepantry-libretranslate
+
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:5000:5000"
+
+    environment:
+      LT_LOAD_ONLY: "en,hu"
+      LT_UPDATE_MODELS: "true"
+
+    volumes:
+      - homepantry_libretranslate_models:/home/libretranslate/.local
+
+    command:
+      - "--disable-web-ui"
+      - "--load-only"
+      - "en,hu"
+
+volumes:
+  homepantry_libretranslate_models:
