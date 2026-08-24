@@ -110,18 +110,25 @@
         else '0'
     }}"
     data-product-search="
-                            {{ product.name }}
-                            {{ product.brand or '' }}
-                            {{ product.ingredient.canonical_key }}
+        {{ product.name }}
+        {{ product.brand or '' }}
 
-                            {% for translation in product.ingredient.translations %}
-                                {{ translation.name }}
-                            {% endfor %}
+        {% for translation in product.ingredient.translations %}
+            {% if
+                translation.language_code
+                == (
+                    current_user.preferred_language
+                    or 'hu'
+                )
+            %}
+                {{ translation.name }}
+            {% endif %}
+        {% endfor %}
 
-                            {% for barcode in product.barcodes %}
-                                {{ barcode.barcode }}
-                            {% endfor %}
-                        "
+        {% for barcode in product.barcodes %}
+            {{ barcode.barcode }}
+        {% endfor %}
+    "
                     >
                         <td class="product-list-image-cell">
 

@@ -563,10 +563,48 @@ def index():
             recipe.title,
         ]
 
-        searchable_parts.extend(
-            tag.name
-            for tag in recipe.tags
+        language = (
+            current_user.preferred_language
+            or "hu"
         )
+
+        for recipe_ingredient in (
+            recipe.ingredients
+        ):
+            ingredient_name = (
+                recipe_ingredient.original_name
+            )
+
+            if (
+                recipe_ingredient.ingredient
+                is not None
+            ):
+                translated_name = next(
+                    (
+                        translation.name
+                        for translation
+                        in (
+                            recipe_ingredient
+                            .ingredient
+                            .translations
+                        )
+                        if (
+                            translation.language_code
+                            == language
+                            and translation.name
+                        )
+                    ),
+                    None,
+                )
+
+                if translated_name:
+                    ingredient_name = (
+                        translated_name
+                    )
+
+            searchable_parts.append(
+                ingredient_name
+            )
 
         searchable_parts.extend(
             ingredient.original_name
@@ -1207,63 +1245,38 @@ def ingredient_search_api():
         query.lower()
     )
 
+    language = (
+        current_user.preferred_language
+        or "hu"
+    )
+
     results = []
 
     for ingredient in ingredients:
-        names = []
-
-        for translation in (
-            ingredient.translations
-        ):
-            if translation.name:
-                names.append(
-                    translation.name
-                )
-
-        names.append(
-            ingredient.canonical_key
-        )
-
-        matched = any(
-            query_normalized
-            in name.lower()
-            for name in names
-        )
-
-        if not matched:
-            continue
-
         display_name = next(
             (
                 translation.name
                 for translation
                 in ingredient.translations
-                if translation.language_code
-                == (
-                    current_user
-                    .preferred_language
-                    or "hu"
+                if (
+                    translation.language_code
+                    == language
+                    and translation.name
                 )
             ),
             None,
         )
 
         if display_name is None:
-            display_name = next(
-                (
-                    translation.name
-                    for translation
-                    in ingredient.translations
-                    if translation.language_code
-                    == "hu"
-                ),
-                None,
-            )
+            continue
 
-        if display_name is None:
-            display_name = (
-                ingredient.canonical_key
-            )
+        matched = (
+            query_normalized
+            in display_name.lower()
+        )
+
+        if not matched:
+            continue
 
         results.append(
             {
