@@ -391,6 +391,19 @@
                                     >
                                         {{ t("movement_transfer") }}
                                     </a>
+
+<a
+    class="secondary-button"
+    href="{{
+        url_for(
+            'inventory.batch_edit',
+            public_id=batch.public_id
+        )
+    }}"
+>
+    {{ t("inventory_edit_action") }}
+</a>
+
                                 </div>
                             </article>
 

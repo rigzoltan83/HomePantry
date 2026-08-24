@@ -186,6 +186,52 @@ class InventoryBatchForm(FlaskForm):
 
     submit = SubmitField()
 
+class InventoryBatchEditForm(FlaskForm):
+    ingredient_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    product_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            Optional(),
+        ],
+    )
+
+    storage_location_id = SelectField(
+        choices=[],
+        coerce=int,
+        validators=[
+            DataRequired(),
+        ],
+    )
+
+    purchase_date = DateField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    expiration_date = DateField(
+        validators=[
+            Optional(),
+        ],
+    )
+
+    note = TextAreaField(
+        validators=[
+            Optional(),
+            Length(max=2000),
+        ],
+    )
+
+    submit = SubmitField()
+
 class ProductForm(FlaskForm):
     ingredient_id = SelectField(
         choices=[],

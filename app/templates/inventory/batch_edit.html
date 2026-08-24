@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ t("inventory_edit_title") }} · HomePantry
+{% endblock %}
+
+{% block content %}
+
+<section class="form-card">
+
+    <h1>
+        {{ t("inventory_edit_title") }}
+    </h1>
+
+    <div class="inventory-edit-summary">
+
+        <strong>
+            {{
+                batch.product.name
+                if batch.product
+                else get_ingredient_display_name(
+                    batch.ingredient
+                )
+            }}
+        </strong>
+
+        <span class="muted">
+            {{ batch.quantity }}
+            {{ batch.unit.symbol }}
+        </span>
+
+    </div>
+
+    <form
+        method="post"
+        novalidate
+    >
+
+        {{ form.hidden_tag() }}
+
+        {% if form.errors %}
+
+            <div class="form-error-summary">
+
+                <strong>
+                    {{ t("form_has_errors") }}
+                </strong>
+
+                <ul>
+
+                    {% for field_name, errors
+                       in form.errors.items() %}
+
+                        {% for error in errors %}
+
+                            <li>
+                                {{ field_name }}:
+                                {{ error }}
+                            </li>
+
+                        {% endfor %}
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="field">
+
+            {{ form.ingredient_id.label }}
+
+            <div class="autocomplete-select">
+
+                {{
+                    form.ingredient_id(
+                        class=(
+                            "js-autocomplete-select "
+                            "js-ingredient-select"
+                        )
+                    )
+                }}
+
+                <input
+                    type="text"
+                    class="
+                        autocomplete-input
+                        js-autocomplete-input
+                    "
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="field">
+
+            {{ form.product_id.label }}
+
+            <div class="autocomplete-select">
+
+                {{
+                    form.product_id(
+                        class="js-autocomplete-select"
+                    )
+                }}
+
+                <input
+                    type="text"
+                    class="
+                        autocomplete-input
+                        js-autocomplete-input
+                    "
+                    autocomplete="off"
+                >
+
+                <div
+                    class="autocomplete-results"
+                    hidden
+                ></div>
+
+            </div>
+
+            <div class="field-help">
+                {{ t("inventory_edit_product_help") }}
+            </div>
+
+        </div>
+
+
+        <div class="field">
+
+            {{ form.storage_location_id.label }}
+
+            {{
+                form.storage_location_id()
+            }}
+
+        </div>
+
+
+        <div class="field">
+
+            {{ form.purchase_date.label }}
+
+            {{
+                form.purchase_date()
+            }}
+
+        </div>
+
+
+        <div class="field">
+
+            {{ form.expiration_date.label }}
+
+            {{
+                form.expiration_date()
+            }}
+
+        </div>
+
+
+        <div class="field">
+
+            {{ form.note.label }}
+
+            {{
+                form.note(
+                    rows=4
+                )
+            }}
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                {{ t("inventory_field_quantity") }}
+            </label>
+
+            <div class="inventory-edit-readonly">
+
+                <strong>
+                    {{ batch.quantity }}
+                    {{ batch.unit.symbol }}
+                </strong>
+
+                <a
+                    href="{{
+                        url_for(
+                            'inventory.batch_adjust',
+                            public_id=(
+                                batch.public_id
+                            )
+                        )
+                    }}"
+                >
+                    {{
+                        t(
+                            "movement_adjust"
+                        )
+                    }}
+                </a>
+
+            </div>
+
+            <div class="field-help">
+                {{
+                    t(
+                        "inventory_edit_quantity_help"
+                    )
+                }}
+            </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            {{
+                form.submit(
+                    class=(
+                        "primary-button "
+                        "auto-width"
+                    )
+                )
+            }}
+
+            <a
+                href="{{
+                    url_for(
+                        'inventory.inventory_list'
+                    )
+                }}"
+            >
+                {{ t("cancel") }}
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

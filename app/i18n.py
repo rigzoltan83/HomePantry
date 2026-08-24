@@ -3,6 +3,24 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"inventory_edit_title": "Készlettétel szerkesztése",
+"inventory_edit_action": "Szerkesztés",
+"inventory_edit_submit": "Módosítások mentése",
+"inventory_updated": "A készlettétel módosítva.",
+"inventory_edit_product_help": (
+    "Ha terméket választasz, "
+    "annak alapanyaga lesz érvényes."
+),
+"inventory_edit_quantity_help": (
+    "A mennyiséget a Korrekció művelettel "
+    "módosítsd, hogy a készletmozgás "
+    "naplózva maradjon."
+),
+"inventory_edit_unit_incompatible": (
+    "A jelenlegi mértékegység nem használható "
+    "a kiválasztott alapanyaghoz. "
+    "Előbb korrigáld a készlettételt."
+),
 "storage_image_view": "Tárhelykép megnyitása",
 "storage_images_title": "Tárhely képei",
 "storage_images_upload": "Képek feltöltése",
@@ -819,6 +837,23 @@ TRANSLATIONS = {
     },
 
     "en": {
+"inventory_edit_title": "Edit inventory item",
+"inventory_edit_action": "Edit",
+"inventory_edit_submit": "Save changes",
+"inventory_updated": "Inventory item updated.",
+"inventory_edit_product_help": (
+    "If a product is selected, "
+    "its ingredient will be used."
+),
+"inventory_edit_quantity_help": (
+    "Use Adjustment to change the quantity "
+    "so the inventory movement remains logged."
+),
+"inventory_edit_unit_incompatible": (
+    "The current unit cannot be used with "
+    "the selected ingredient. "
+    "Adjust the inventory item first."
+),
 "storage_image_view": "View storage image",
 "storage_images_title": "Storage images",
 "storage_images_upload": "Upload images",

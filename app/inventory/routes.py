@@ -52,6 +52,7 @@ from .forms import (
     BatchQuantityActionForm,
     BatchTransferForm,
     InventoryBatchForm,
+    InventoryBatchEditForm,
     ProductForm,
     ExpiringSoonSettingsForm,
     StockRuleForm,
@@ -2670,6 +2671,230 @@ def batch_new():
     )
 
 
+@bp.route(
+    "/batches/<uuid:public_id>/edit",
+    methods=[
+        "GET",
+        "POST",
+    ],
+)
+@login_required
+def batch_edit(
+    public_id,
+):
+    batch = get_batch_or_404(
+        public_id
+    )
+
+    household_id = (
+        batch.household_id
+    )
+
+    form = InventoryBatchEditForm()
+
+    form.ingredient_id.label.text = (
+        translate(
+            "inventory_field_ingredient"
+        )
+    )
+
+    form.product_id.label.text = (
+        translate(
+            "inventory_field_product"
+        )
+    )
+
+    form.storage_location_id.label.text = (
+        translate(
+            "inventory_field_location"
+        )
+    )
+
+    form.purchase_date.label.text = (
+        translate(
+            "inventory_field_purchase_date"
+        )
+    )
+
+    form.expiration_date.label.text = (
+        translate(
+            "inventory_field_expiration_date"
+        )
+    )
+
+    form.note.label.text = translate(
+        "inventory_field_note"
+    )
+
+    form.submit.label.text = translate(
+        "inventory_edit_submit"
+    )
+
+    form.ingredient_id.choices = (
+        get_ingredient_choices()
+    )
+
+    form.product_id.choices = (
+        get_product_choices(
+            household_id
+        )
+    )
+
+    form.storage_location_id.choices = (
+        get_storage_location_choices(
+            household_id
+        )
+    )
+
+    if not form.is_submitted():
+        form.ingredient_id.data = (
+            batch.ingredient_id
+        )
+
+        form.product_id.data = (
+            batch.product_id
+            or 0
+        )
+
+        form.storage_location_id.data = (
+            batch.storage_location_id
+        )
+
+        form.purchase_date.data = (
+            batch.purchase_date
+        )
+
+        form.expiration_date.data = (
+            batch.expiration_date
+        )
+
+        form.note.data = (
+            batch.note
+        )
+
+    if form.validate_on_submit():
+        ingredient = db.session.get(
+            Ingredient,
+            form.ingredient_id.data,
+        )
+
+        if (
+            ingredient is None
+            or not ingredient.is_active
+        ):
+            abort(400)
+
+        product = None
+
+        if form.product_id.data:
+            product = db.session.get(
+                Product,
+                form.product_id.data,
+            )
+
+            if (
+                product is None
+                or product.household_id
+                != household_id
+                or not product.is_active
+            ):
+                abort(400)
+
+        if (
+            product is not None
+            and product.ingredient_id
+            is not None
+        ):
+            ingredient = (
+                product.ingredient
+            )
+
+        location = db.session.get(
+            StorageLocation,
+            form.storage_location_id.data,
+        )
+
+        if (
+            location is None
+            or location.household_id
+            != household_id
+            or not location.is_active
+        ):
+            abort(400)
+
+        allowed_unit = db.session.scalar(
+            select(IngredientUnit)
+            .where(
+                IngredientUnit.ingredient_id
+                == ingredient.id,
+                IngredientUnit.unit_id
+                == batch.unit_id,
+            )
+        )
+
+        if allowed_unit is None:
+            flash(
+                translate(
+                    "inventory_edit_unit_incompatible"
+                ),
+                "error",
+            )
+
+            return render_template(
+                "inventory/batch_edit.html",
+                form=form,
+                batch=batch,
+                get_ingredient_display_name=(
+                    get_ingredient_display_name
+                ),
+            )
+
+        batch.ingredient = ingredient
+        batch.product = product
+
+        batch.storage_location = (
+            location
+        )
+
+        batch.purchase_date = (
+            form.purchase_date.data
+        )
+
+        batch.expiration_date = (
+            form.expiration_date.data
+        )
+
+        batch.note = (
+            form.note.data.strip()
+            if form.note.data
+            else None
+        )
+
+        db.session.commit()
+
+        flash(
+            translate(
+                "inventory_updated"
+            ),
+            "success",
+        )
+
+        return redirect(
+            url_for(
+                "inventory.inventory_list"
+            )
+        )
+
+    return render_template(
+        "inventory/batch_edit.html",
+        form=form,
+        batch=batch,
+        get_ingredient_display_name=(
+            get_ingredient_display_name
+        ),
+    )
+
+
 def get_ingredient_display_name(
     ingredient,
 ):
@@ -3972,13 +4197,11 @@ def inventory_list():
 
         search_parts = [
             group["name"],
-            ingredient.canonical_key,
         ]
 
         for batch in group["batches"]:
             batch_search_parts = [
                 group["name"],
-                ingredient.canonical_key,
             ]
 
             if batch.product is not None:
