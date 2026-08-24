@@ -49,6 +49,37 @@
 
 {% endif %}
 
+{% if online_import | default(false) %}
+
+    <label class="recipe-import-image-option">
+
+        <input
+            type="checkbox"
+            name="import_source_image"
+            value="1"
+
+            {% if
+                request.method != "POST"
+                or request.form.get(
+                    "import_source_image"
+                ) == "1"
+            %}
+                checked
+            {% endif %}
+        >
+
+        <span>
+            {{
+                t(
+                    "recipe_online_import_image"
+                )
+            }}
+        </span>
+
+    </label>
+
+{% endif %}
+
         {{ form.hidden_tag() }}
 
         <div class="field">

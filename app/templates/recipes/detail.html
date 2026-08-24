@@ -88,14 +88,6 @@
 </div>
 
 
-{% if
-    recipe.difficulty
-    or recipe.servings
-    or recipe.prep_time_minutes
-    or recipe.cook_time_minutes
-    or recipe.total_time_minutes
-%}
-
 {% if cover_image %}
 
     <div class="recipe-detail-cover">
@@ -113,6 +105,15 @@
     </div>
 
 {% endif %}
+
+
+{% if
+    recipe.difficulty
+    or recipe.servings
+    or recipe.prep_time_minutes
+    or recipe.cook_time_minutes
+    or recipe.total_time_minutes
+%}
 
 <section class="panel recipe-detail-meta">
 
@@ -286,17 +287,9 @@ print-hide
 
     {% if recipe.instructions_text %}
 
-        <div class="recipe-instructions">
-            {{
-                recipe.instructions_text
-                | e
-                | replace(
-                    "\n",
-                    "<br>"
-                )
-                | safe
-            }}
-        </div>
+<div class="recipe-instructions">
+    {{ recipe.instructions_text }}
+</div>
 
     {% else %}
 

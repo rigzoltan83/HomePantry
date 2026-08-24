@@ -3,6 +3,15 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_online_import_image": (
+    "Az online recept képének "
+    "mentése saját receptképként"
+),
+"recipe_online_import_image_error": (
+    "A recept elmenthető, de az online "
+    "kép letöltése vagy feldolgozása "
+    "nem sikerült."
+),
 "recipe_online_import": "Importálás",
 "recipe_online_import_notice_title": (
     "Online recept előtöltve"
@@ -884,6 +893,15 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_online_import_image": (
+    "Save the online recipe image "
+    "as a local recipe image"
+),
+"recipe_online_import_image_error": (
+    "The recipe can be saved, but the "
+    "online image could not be downloaded "
+    "or processed."
+),
 "recipe_online_import": "Import",
 "recipe_online_import_notice_title": (
     "Online recipe prefilled"

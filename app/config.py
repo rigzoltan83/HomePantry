@@ -31,6 +31,10 @@ class Config:
 
     ONLINE_RECIPE_TIMEOUT = 15
 
+    ONLINE_RECIPE_IMAGE_MAX_BYTES = (
+        10 * 1024 * 1024
+    )
+
     DEFAULT_TIMEZONE = os.getenv(
         "DEFAULT_TIMEZONE",
         "Europe/Budapest",

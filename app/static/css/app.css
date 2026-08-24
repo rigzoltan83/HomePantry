@@ -2402,6 +2402,7 @@ body.modal-open {
 
 .recipe-instructions {
     line-height: 1.65;
+    white-space: pre-line;
 }
 
 .recipe-search-panel {
@@ -3192,4 +3193,19 @@ body.modal-open {
 .recipe-import-notice strong {
     display: block;
     margin-bottom: 4px;
+}
+
+.recipe-import-image-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 10px;
+
+    cursor: pointer;
+}
+
+.recipe-import-image-option input {
+    width: auto;
+    margin: 0;
 }

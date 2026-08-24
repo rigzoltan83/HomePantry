@@ -1,5 +1,7 @@
 import unicodedata
 import os
+from io import BytesIO
+
 from decimal import (
     Decimal,
     InvalidOperation,
@@ -14,6 +16,9 @@ from flask import (
     request,
     send_from_directory,
     url_for,
+)
+from werkzeug.datastructures import (
+    FileStorage,
 )
 from flask_login import (
     current_user,
@@ -40,8 +45,9 @@ from .online_recipes import (
     THEMEALDB_CUISINE_MAP,
     THEMEALDB_DIET_MAP,
     THEMEALDB_FOOD_TYPE_MAP,
-    search_themealdb_recipes,
+    download_themealdb_image,
     get_themealdb_recipe,
+    search_themealdb_recipes,
 )
 from .recipe_images import (
     delete_recipe_image_file,
@@ -1297,8 +1303,6 @@ def new():
                 )
             )
 
-            db.session.commit()
-
         except ValueError:
             db.session.rollback()
 
@@ -1327,7 +1331,95 @@ def new():
                 recipe_ingredient_rows=(
                     ingredient_rows
                 ),
+                online_import=(
+                    online_import
+                ),
             )
+
+        has_uploaded_recipe_image = (
+            len(saved_images) > 0
+        )
+
+        if has_uploaded_recipe_image:
+            for index, image in enumerate(
+                saved_images
+            ):
+                image.is_cover = (
+                    index == 0
+                )
+
+        import_source_image = (
+            request.form.get(
+                "import_source_image"
+            )
+            == "1"
+        )
+
+        if (
+            import_source_image
+            and import_provider
+            == "themealdb"
+            and imported_recipe
+            is not None
+            and imported_recipe.get(
+                "image_url"
+            )
+        ):
+            try:
+                image_data = (
+                    download_themealdb_image(
+                        imported_recipe[
+                            "image_url"
+                        ]
+                    )
+                )
+
+                remote_image = FileStorage(
+                    stream=BytesIO(
+                        image_data
+                    ),
+                    filename=(
+                        "themealdb-"
+                        f"{import_id}.jpg"
+                    ),
+                    content_type=(
+                        "image/jpeg"
+                    ),
+                )
+
+                saved_image = (
+                    save_recipe_image(
+                        recipe,
+                        remote_image,
+                    )
+                )
+
+                if saved_image is not None:
+
+                    if (
+                        has_uploaded_recipe_image
+                    ):
+                        saved_image.is_cover = (
+                            False
+                        )
+
+                    saved_images.append(
+                        saved_image
+                    )
+
+            except (
+                RuntimeError,
+                ValueError,
+                OSError,
+            ):
+                flash(
+                    translate(
+                        "recipe_online_import_image_error"
+                    ),
+                    "warning",
+                )
+
+        db.session.commit()
 
         flash(
             translate(

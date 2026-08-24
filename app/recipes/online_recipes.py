@@ -1,8 +1,160 @@
+import html
 import json
+import re
+import urllib.error
 import urllib.parse
 import urllib.request
 
 from flask import current_app
+
+THEMEALDB_IMAGE_HOSTS = {
+    "themealdb.com",
+    "www.themealdb.com",
+}
+
+
+def download_themealdb_image(
+    image_url,
+):
+    image_url = (
+        str(image_url or "")
+        .strip()
+    )
+
+    if not image_url:
+        raise RuntimeError(
+            "Missing image URL."
+        )
+
+    parsed_url = (
+        urllib.parse.urlparse(
+            image_url
+        )
+    )
+
+    if (
+        parsed_url.scheme != "https"
+        or parsed_url.hostname
+        not in THEMEALDB_IMAGE_HOSTS
+    ):
+        raise RuntimeError(
+            "Invalid TheMealDB image URL."
+        )
+
+    request = urllib.request.Request(
+        image_url,
+        headers={
+            "User-Agent": (
+                "HomePantry/1.0"
+            ),
+            "Accept": "image/*",
+        },
+    )
+
+    timeout = int(
+        current_app.config.get(
+            "ONLINE_RECIPE_TIMEOUT",
+            15,
+        )
+    )
+
+    max_bytes = int(
+        current_app.config.get(
+            "ONLINE_RECIPE_IMAGE_MAX_BYTES",
+            10 * 1024 * 1024,
+        )
+    )
+
+    try:
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout,
+        ) as response:
+            final_url = (
+                response.geturl()
+            )
+
+            final_parsed = (
+                urllib.parse.urlparse(
+                    final_url
+                )
+            )
+
+            if (
+                final_parsed.scheme
+                != "https"
+                or final_parsed.hostname
+                not in THEMEALDB_IMAGE_HOSTS
+            ):
+                raise RuntimeError(
+                    "Invalid redirected "
+                    "image URL."
+                )
+
+            content_type = (
+                response.headers.get(
+                    "Content-Type",
+                    "",
+                )
+                .split(
+                    ";",
+                    1,
+                )[0]
+                .strip()
+                .lower()
+            )
+
+            if not content_type.startswith(
+                "image/"
+            ):
+                raise RuntimeError(
+                    "Remote file is not "
+                    "an image."
+                )
+
+            content_length = (
+                response.headers.get(
+                    "Content-Length"
+                )
+            )
+
+            if content_length:
+                try:
+                    if (
+                        int(content_length)
+                        > max_bytes
+                    ):
+                        raise RuntimeError(
+                            "Remote image "
+                            "is too large."
+                        )
+                except ValueError:
+                    pass
+
+            data = response.read(
+                max_bytes + 1
+            )
+
+    except (
+        urllib.error.HTTPError,
+        urllib.error.URLError,
+        TimeoutError,
+    ) as exc:
+        raise RuntimeError(
+            "Unable to download "
+            "TheMealDB image."
+        ) from exc
+
+    if (
+        not data
+        or len(data) > max_bytes
+    ):
+        raise RuntimeError(
+            "Invalid or oversized "
+            "remote image."
+        )
+
+    return data
 
 THEMEALDB_CUISINE_MAP = {
     "hungarian": "Hungarian",
@@ -139,6 +291,71 @@ def extract_themealdb_ingredients(
     return ingredients
 
 
+def clean_themealdb_instructions(
+    value,
+):
+    value = str(
+        value or ""
+    )
+
+    value = re.sub(
+        r"(?i)<br\s*/?>",
+        "\n",
+        value,
+    )
+
+    value = re.sub(
+        r"(?i)</p\s*>",
+        "\n\n",
+        value,
+    )
+
+    value = re.sub(
+        r"(?i)<p(?:\s[^>]*)?>",
+        "",
+        value,
+    )
+
+    value = re.sub(
+        r"<[^>]+>",
+        "",
+        value,
+    )
+
+    value = html.unescape(
+        value
+    )
+
+    lines = [
+        line.strip()
+        for line in value.splitlines()
+    ]
+
+    cleaned_lines = []
+    previous_blank = False
+
+    for line in lines:
+        is_blank = not line
+
+        if (
+            is_blank
+            and previous_blank
+        ):
+            continue
+
+        cleaned_lines.append(
+            line
+        )
+
+        previous_blank = (
+            is_blank
+        )
+
+    return "\n".join(
+        cleaned_lines
+    ).strip()
+
+
 def normalize_themealdb_meal(
     meal,
 ):
@@ -163,10 +380,11 @@ def normalize_themealdb_meal(
             or ""
         ),
         "instructions": (
-            meal.get(
-                "strInstructions"
+            clean_themealdb_instructions(
+                meal.get(
+                    "strInstructions"
+                )
             )
-            or ""
         ),
         "image_url": (
             meal.get(
