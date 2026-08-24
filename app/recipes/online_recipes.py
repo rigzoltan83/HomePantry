@@ -12,6 +12,10 @@ THEMEALDB_IMAGE_HOSTS = {
     "www.themealdb.com",
 }
 
+THEMEALDB_INGREDIENT_FILTER_MAP = {
+    "potato": "potatoes",
+    "mushroom": "mushrooms",
+}
 
 def download_themealdb_image(
     image_url,
@@ -483,6 +487,223 @@ def search_themealdb_recipes(
         )
         for meal in meals
     ]
+
+
+def get_themealdb_filter_ids(
+    filter_key,
+    value,
+):
+    value = (
+        str(value or "")
+        .strip()
+    )
+
+    if not value:
+        return []
+
+    if filter_key == "i":
+        value = (
+            THEMEALDB_INGREDIENT_FILTER_MAP
+            .get(
+                value.casefold(),
+                value,
+            )
+        )
+
+        value = value.replace(
+            " ",
+            "_",
+        )
+
+    data = themealdb_request(
+        "filter.php",
+        {
+            filter_key: value,
+        },
+    )
+
+    meals = (
+        data.get("meals")
+        or []
+    )
+
+    return [
+        str(
+            meal.get("idMeal")
+            or ""
+        )
+        for meal in meals
+        if meal.get("idMeal")
+    ]
+
+
+def search_themealdb_recipes_by_ingredients(
+    ingredients,
+    area=None,
+    category=None,
+    limit=25,
+):
+    cleaned_ingredients = []
+
+    for ingredient in ingredients:
+        ingredient = (
+            str(ingredient or "")
+            .strip()
+            .casefold()
+        )
+
+        if (
+            ingredient
+            and ingredient
+            not in cleaned_ingredients
+        ):
+            cleaned_ingredients.append(
+                ingredient
+            )
+
+    if not cleaned_ingredients:
+        return []
+
+    ingredient_candidates = []
+
+    for ingredient in (
+        cleaned_ingredients
+    ):
+        ingredient_ids = (
+            get_themealdb_filter_ids(
+                "i",
+                ingredient,
+            )
+        )
+
+        if not ingredient_ids:
+            return []
+
+        ingredient_candidates.append(
+            (
+                ingredient,
+                ingredient_ids,
+            )
+        )
+
+    ingredient_candidates.sort(
+        key=lambda item: len(
+            item[1]
+        )
+    )
+
+    primary_ingredient = (
+        ingredient_candidates[0][0]
+    )
+
+    candidate_ids = (
+        ingredient_candidates[0][1]
+    )
+
+    additional_ingredients = [
+        ingredient
+        for ingredient
+        in cleaned_ingredients
+        if ingredient
+        != primary_ingredient
+    ]
+
+    allowed_ids = set(
+        candidate_ids
+    )
+
+    if area:
+        area_ids = set(
+            get_themealdb_filter_ids(
+                "a",
+                area,
+            )
+        )
+
+        allowed_ids.intersection_update(
+            area_ids
+        )
+
+    if (
+        category
+        and allowed_ids
+    ):
+        category_ids = set(
+            get_themealdb_filter_ids(
+                "c",
+                category,
+            )
+        )
+
+        allowed_ids.intersection_update(
+            category_ids
+        )
+
+    if not allowed_ids:
+        return []
+
+    results = []
+
+    for meal_id in candidate_ids:
+        if meal_id not in allowed_ids:
+            continue
+
+        meal = get_themealdb_recipe(
+            meal_id
+        )
+
+        if meal is None:
+            continue
+
+        meal_ingredient_names = {
+            str(
+                item.get("name")
+                or ""
+            )
+            .strip()
+            .casefold()
+            for item in (
+                meal.get(
+                    "ingredients"
+                )
+                or []
+            )
+            if item.get("name")
+        }
+
+        normalized_meal_ingredients = {
+            (
+                "potato"
+                if name == "potatoes"
+                else (
+                    "mushroom"
+                    if name == "mushrooms"
+                    else name
+                )
+            )
+            for name in (
+                meal_ingredient_names
+            )
+        }
+
+        all_ingredients_found = all(
+            ingredient
+            in normalized_meal_ingredients
+            for ingredient
+            in additional_ingredients
+        )
+
+        if not all_ingredients_found:
+            continue
+
+        results.append(
+            meal
+        )
+
+        if len(results) >= limit:
+            break
+
+    return results
 
 
 def get_themealdb_recipe(

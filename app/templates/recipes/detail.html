@@ -238,21 +238,15 @@ print-hide
 
                 <span>
 
-                    {% if item.quantity is not none %}
-                        {{
-                            "%g"
-                            | format(
-                                item.quantity
-                                | float
-                            )
-                        }}
-                    {% endif %}
+{% if row.quantity_display %}
+    {{ row.quantity_display }}
+{% endif %}
 
-                    {% if item.unit %}
-                        {{ item.unit.symbol }}
-                    {% elif item.unit_text %}
-                        {{ item.unit_text }}
-                    {% endif %}
+{% if row.unit_display %}
+    {{ row.unit_display }}
+{% elif item.unit_text %}
+    {{ item.unit_text }}
+{% endif %}
 
                     {{ item.original_name }}
 

@@ -3,6 +3,25 @@ from flask_login import current_user
 
 TRANSLATIONS = {
     "hu": {
+"recipe_online_availability": (
+    "Alapanyag-készlet"
+),
+"recipe_online_availability_100": (
+    "Minden alapanyag megvan"
+),
+"recipe_online_availability_75": (
+    "Legalább 75% megvan"
+),
+"recipe_online_availability_50": (
+    "Legalább 50% megvan"
+),
+"recipe_online_available_stock": (
+    "Készleten"
+),
+"recipe_online_translated_query": (
+    "Online kereséshez használt "
+    "pontos alapanyag-fordítás:"
+),
 "recipe_online_import_image": (
     "Az online recept képének "
     "mentése saját receptképként"
@@ -893,6 +912,25 @@ TRANSLATIONS = {
     },
 
     "en": {
+"recipe_online_availability": (
+    "Ingredient availability"
+),
+"recipe_online_availability_100": (
+    "All ingredients available"
+),
+"recipe_online_availability_75": (
+    "At least 75% available"
+),
+"recipe_online_availability_50": (
+    "At least 50% available"
+),
+"recipe_online_available_stock": (
+    "In stock"
+),
+"recipe_online_translated_query": (
+    "Exact ingredient translation "
+    "used for online search:"
+),
 "recipe_online_import_image": (
     "Save the online recipe image "
     "as a local recipe image"

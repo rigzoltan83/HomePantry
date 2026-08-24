@@ -164,6 +164,72 @@
 
     </div>
 
+<div class="field">
+
+    <label for="online-availability">
+        {{
+            t(
+                "recipe_online_availability"
+            )
+        }}
+    </label>
+
+    <select
+        id="online-availability"
+        name="availability"
+    >
+
+        <option value="">
+            {{
+                t(
+                    "recipe_filter_all"
+                )
+            }}
+        </option>
+
+        <option
+            value="100"
+            {% if availability_percent == 100 %}
+                selected
+            {% endif %}
+        >
+            {{
+                t(
+                    "recipe_online_availability_100"
+                )
+            }}
+        </option>
+
+        <option
+            value="75"
+            {% if availability_percent == 75 %}
+                selected
+            {% endif %}
+        >
+            {{
+                t(
+                    "recipe_online_availability_75"
+                )
+            }}
+        </option>
+
+        <option
+            value="50"
+            {% if availability_percent == 50 %}
+                selected
+            {% endif %}
+        >
+            {{
+                t(
+                    "recipe_online_availability_50"
+                )
+            }}
+        </option>
+
+    </select>
+
+</div>
+
 </div>
 
 <p class="field-help">
@@ -171,6 +237,35 @@
 </p>
 
     </form>
+
+{% if
+    query
+    and api_query
+    and query | lower
+        != api_query | lower
+%}
+
+    <p class="field-help recipe-online-query-translation">
+
+        {{
+            t(
+                "recipe_online_translated_query"
+            )
+        }}
+
+        <strong>
+            {{ query }}
+        </strong>
+
+        →
+
+        <strong>
+            {{ api_query }}
+        </strong>
+
+    </p>
+
+{% endif %}
 
 </section>
 
@@ -199,17 +294,20 @@
         </h2>
 
         <span class="muted">
-            {{ results | length }}
+{{ result_rows | length }}
         </span>
 
     </div>
 
 
-    {% if results %}
+{% if result_rows %}
 
         <div class="recipe-online-grid">
 
-            {% for item in results %}
+{% for row in result_rows %}
+
+    {% set item = row.recipe %}
+    {% set availability = row.availability %}
 
                 <article class="recipe-online-card">
 
@@ -311,44 +409,72 @@
 
                         <div class="recipe-online-actions">
 
-                            {% if item.source_url %}
+                            <div class="recipe-online-actions-left">
+
+                                {% if item.source_url %}
+
+                                    <a
+                                        href="{{ item.source_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {{
+                                            t(
+                                                "recipe_online_source"
+                                            )
+                                        }}
+                                    </a>
+
+                                {% endif %}
+
+                                <span class="muted">
+                                    TheMealDB
+                                </span>
+
+                            </div>
+
+                            <div class="recipe-online-availability">
+
+                                <strong>
+                                    {{
+                                        t(
+                                            "recipe_online_available_stock"
+                                        )
+                                    }}:
+                                </strong>
+
+                                {{ availability.available_count }}
+                                /
+                                {{ availability.total_count }}
+
+                                (
+                                {{ availability.match_percent }}%
+                                )
+
+                            </div>
+
+                            <div class="recipe-online-actions-right">
 
                                 <a
+                                    class="primary-link"
                                     href="{{
-                                        item.source_url
+                                        url_for(
+                                            'recipes.new',
+                                            import_provider='themealdb',
+                                            import_id=item.external_id
+                                        )
                                     }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                 >
                                     {{
                                         t(
-                                            "recipe_online_source"
+                                            "recipe_online_import"
                                         )
                                     }}
                                 </a>
 
-<a
-    class="primary-link"
-    href="{{
-        url_for(
-            'recipes.new',
-            import_provider='themealdb',
-            import_id=item.external_id
-        )
-    }}"
->
-    {{ t("recipe_online_import") }}
-</a>
-
-                            {% endif %}
-
-                            <span class="muted">
-                                TheMealDB
-                            </span>
+                            </div>
 
                         </div>
-
-                    </div>
 
                 </article>
 

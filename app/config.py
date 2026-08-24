@@ -31,6 +31,19 @@ class Config:
 
     ONLINE_RECIPE_TIMEOUT = 15
 
+    RECIPE_TRANSLATION_API_URL = (
+        os.getenv(
+            "RECIPE_TRANSLATION_API_URL",
+            "http://127.0.0.1:5000",
+        )
+        .strip()
+        .rstrip("/")
+    )
+
+    RECIPE_TRANSLATION_TIMEOUT = 30
+
+    RECIPE_TRANSLATION_MAX_CHARS = 15000
+
     ONLINE_RECIPE_IMAGE_MAX_BYTES = (
         10 * 1024 * 1024
     )

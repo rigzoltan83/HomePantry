@@ -119,8 +119,12 @@ document.addEventListener(
                 unitText.hidden = false;
             };
 
-            const loadIngredientUnits =
-                async ingredientIdValue => {
+const loadIngredientUnits =
+    async (
+        ingredientIdValue,
+        preferredUnitId = 0,
+        preferredUnitText = ""
+    ) => {
                     if (
                         !ingredientIdValue
                         || !unitsUrl
@@ -195,26 +199,58 @@ document.addEventListener(
                             }
                         );
 
-                        if (
-                            data.units
-                            && data.units.length
-                        ) {
-                            unitText.value = "";
-                            unitText.hidden = true;
+if (
+    data.units
+    && data.units.length
+) {
 
-                            unitSelect.hidden = false;
+    const preferredValue =
+        preferredUnitId
+            ? String(
+                preferredUnitId
+            )
+            : "";
 
-                            if (
-                                data.default_unit_id
-                            ) {
-                                unitSelect.value =
-                                    String(
-                                        data.default_unit_id
-                                    );
-                            }
-                        } else {
-                            useFreeTextUnit();
-                        }
+    const preferredExists =
+        preferredValue
+        && Array.from(
+            unitSelect.options
+        ).some(
+            option =>
+                option.value
+                === preferredValue
+        );
+
+if (preferredExists) {
+    unitSelect.value =
+        preferredValue;
+
+    unitText.value = "";
+    unitText.hidden = true;
+    unitSelect.hidden = false;
+
+} else if (
+    preferredUnitText
+) {
+    unitSelect.value = "0";
+    unitSelect.hidden = true;
+
+    unitText.value =
+        preferredUnitText;
+
+    unitText.hidden = false;
+
+} else if (
+    data.default_unit_id
+) {
+    unitSelect.value =
+        String(
+            data.default_unit_id
+        );
+}
+} else {
+    useFreeTextUnit();
+}
                     } catch (error) {
                         console.error(
                             "Recipe ingredient unit "
@@ -429,6 +465,11 @@ document.addEventListener(
             );
 
             useFreeTextUnit();
+
+            return {
+                loadIngredientUnits,
+                useFreeTextUnit,
+            };
         };
 
         const addRow = (
@@ -448,9 +489,10 @@ document.addEventListener(
                 fragment
             );
 
-            setupRow(
-                row
-            );
+            const rowApi =
+                setupRow(
+                    row
+                );
 
             const ingredientId =
                 row.querySelector(
@@ -497,103 +539,15 @@ document.addEventListener(
                 if (
                     initialData.ingredient_id
                 ) {
-                    const url =
-                        new URL(
-                            unitsUrl,
-                            window.location.origin
-                        );
-
-                    url.searchParams.set(
-                        "ingredient_id",
-                        String(
-                            initialData.ingredient_id
-                        )
-                    );
-
-                    fetch(
-                        url.toString(),
-                        {
-                            headers: {
-                                "Accept":
-                                    "application/json",
-                            },
-                        }
-                    )
-                        .then(
-                            response => {
-                                if (!response.ok) {
-                                    throw new Error(
-                                        "Unit load failed"
-                                    );
-                                }
-
-                                return response.json();
-                            }
-                        )
-                        .then(
-                            data => {
-                                unitSelect.innerHTML = "";
-
-                                const emptyOption =
-                                    document.createElement(
-                                        "option"
-                                    );
-
-                                emptyOption.value = "0";
-                                emptyOption.textContent = "—";
-
-                                unitSelect.appendChild(
-                                    emptyOption
-                                );
-
-                                (
-                                    data.units || []
-                                ).forEach(
-                                    unit => {
-                                        const option =
-                                            document
-                                                .createElement(
-                                                    "option"
-                                                );
-
-                                        option.value =
-                                            String(unit.id);
-
-                                        option.textContent =
-                                            unit.label;
-
-                                        unitSelect
-                                            .appendChild(
-                                                option
-                                            );
-                                    }
-                                );
-
-                                unitText.hidden = true;
-                                unitSelect.hidden = false;
-
-                                if (
-                                    initialData.unit_id
-                                ) {
-                                    unitSelect.value =
-                                        String(
-                                            initialData.unit_id
-                                        );
-                                }
-                            }
-                        )
-                        .catch(
-                            error => {
-                                console.error(
-                                    "Recipe ingredient "
-                                    + "preload unit failed:",
-                                    error
-                                );
-
-                                unitSelect.hidden = true;
-                                unitText.hidden = false;
-                            }
-                        );
+rowApi.loadIngredientUnits(
+    String(
+        initialData.ingredient_id
+    ),
+    initialData.unit_id || 0,
+    initialData.unit_text || ""
+);
+                } else {
+                    rowApi.useFreeTextUnit();
                 }
             }
 

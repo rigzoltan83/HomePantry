@@ -3123,12 +3123,32 @@ body.modal-open {
 }
 
 .recipe-online-actions {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.recipe-online-actions-left {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
+}
 
-    margin-top: 16px;
+.recipe-online-actions-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.recipe-online-availability {
+    white-space: nowrap;
+    font-size: 0.92rem;
 }
 
 @media (max-width: 600px) {
@@ -3152,10 +3172,10 @@ body.modal-open {
     display: grid;
 
     grid-template-columns:
-        repeat(
-            3,
-            minmax(0, 1fr)
-        );
+    repeat(
+        4,
+        minmax(0, 1fr)
+    );
 
     gap: 14px;
 
@@ -3175,6 +3195,20 @@ body.modal-open {
     .recipe-online-filters {
         grid-template-columns: 1fr;
     }
+}
+
+.recipe-online-actions {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+}
+
+.recipe-online-actions-left,
+.recipe-online-actions-right {
+    justify-content: flex-start;
+}
+
+.recipe-online-availability {
+    white-space: normal;
 }
 
 .recipe-import-notice {

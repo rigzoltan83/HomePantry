@@ -25,6 +25,7 @@ from flask_login import (
     login_required,
 )
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.extensions import db
 from app.i18n import translate
@@ -48,6 +49,13 @@ from .online_recipes import (
     download_themealdb_image,
     get_themealdb_recipe,
     search_themealdb_recipes,
+    search_themealdb_recipes_by_ingredients,
+)
+from .import_normalization import (
+    normalize_themealdb_import_ingredients,
+)
+from .recipe_translation import (
+    translate_imported_recipe_to_hungarian,
 )
 from .recipe_images import (
     delete_recipe_image_file,
@@ -737,6 +745,18 @@ def online_search():
         .strip()
     )
 
+    safe_ingredient_terms = (
+        get_safe_english_ingredient_terms(
+            query
+        )
+    )
+
+    api_query = (
+        get_safe_english_search_query(
+            query
+        )
+    )
+
     cuisine_key = (
         request.args.get(
             "cuisine",
@@ -761,8 +781,40 @@ def online_search():
         .strip()
     )
 
+    availability_percent = (
+        request.args.get(
+            "availability",
+            type=int,
+        )
+    )
+
+    if availability_percent not in {
+        50,
+        75,
+        100,
+    }:
+        availability_percent = None
+
     results = []
     search_error = None
+
+    household_id = (
+        get_current_household_id()
+    )
+
+    available_ingredient_ids = (
+        get_available_ingredient_ids(
+            household_id
+        )
+    )
+
+    english_ingredient_id_map = (
+        get_english_ingredient_id_map()
+    )
+
+    canonical_ingredient_id_map = (
+        get_ingredient_canonical_id_map()
+    )
 
     if (
         food_type_key
@@ -799,18 +851,75 @@ def online_search():
         and search_error is None
     ):
         try:
-            results = (
-                search_themealdb_recipes(
-                    query,
-                    area=area,
-                    category=category,
+            if safe_ingredient_terms:
+                results = (
+                    search_themealdb_recipes_by_ingredients(
+                        safe_ingredient_terms,
+                        area=area,
+                        category=category,
+                    )
                 )
-            )
+
+            else:
+                results = (
+                    search_themealdb_recipes(
+                        api_query,
+                        area=area,
+                        category=category,
+                    )
+                )
 
         except RuntimeError:
             search_error = translate(
                 "recipe_online_error"
             )
+
+    result_rows = []
+
+    for recipe in results:
+        availability = (
+            get_online_recipe_availability(
+                recipe,
+                available_ingredient_ids,
+                english_ingredient_id_map,
+                canonical_ingredient_id_map,
+            )
+        )
+
+        if (
+            availability_percent
+            is not None
+            and availability[
+                "match_percent"
+            ]
+            < availability_percent
+        ):
+            continue
+
+        result_rows.append(
+            {
+                "recipe": recipe,
+                "availability": (
+                    availability
+                ),
+            }
+        )
+
+    result_rows.sort(
+        key=lambda row: (
+            -row[
+                "availability"
+            ][
+                "match_percent"
+            ],
+            (
+                row["recipe"].get(
+                    "title"
+                )
+                or ""
+            ).casefold(),
+        )
+    )
 
     active_tags = (
         get_active_recipe_tags()
@@ -851,12 +960,16 @@ def online_search():
 
     return render_template(
         "recipes/online_search.html",
+        api_query=api_query,
         query=query,
-        results=results,
+        result_rows=result_rows,
         search_error=search_error,
         cuisine_key=cuisine_key,
         food_type_key=food_type_key,
         diet_key=diet_key,
+        availability_percent=(
+            availability_percent
+        ),
         cuisine_choices=cuisine_choices,
         food_type_choices=(
             food_type_choices
@@ -918,6 +1031,467 @@ def find_exact_english_ingredient(
         return None
 
     return matches[0]
+
+
+ONLINE_RECIPE_SEARCH_ALIASES = {
+    # Köznyelvi / általános húsnevek.
+    # Ezek csak online keresési aliasok,
+    # nem HomePantry ingredient-párosítások.
+    "csirke": "chicken",
+    "csirkehús": "chicken",
+
+    "marha": "beef",
+    "marhahús": "beef",
+
+    "sertés": "pork",
+    "sertéshús": "pork",
+    "disznóhús": "pork",
+
+    "bárány": "lamb",
+    "bárányhús": "lamb",
+
+    # Általános halak.
+    "lazac": "salmon",
+    "tonhal": "tuna",
+
+    # Köznyelvi zöldség / köret nevek.
+    "hagyma": "onion",
+    "krumpli": "potato",
+    "rizs": "rice",
+
+    # Általános alapanyagok.
+    "tojás": "egg",
+    "tej": "milk",
+    "sajt": "cheese",
+    "vaj": "butter",
+    "gomba": "mushroom",
+    "sonka": "ham",
+    "méz": "honey",
+    "cukor": "sugar",
+    "só": "salt",
+    "kenyér": "bread",
+}
+
+
+ONLINE_RECIPE_AVAILABILITY_GROUPS = {
+    "chicken": {
+        "chicken_breast",
+        "chicken_thigh",
+        "chicken_drumstick",
+        "chicken_wing",
+        "whole_chicken",
+    },
+
+    "rice": {
+        "white_rice",
+        "brown_rice",
+        "basmati_rice",
+        "jasmine_rice",
+        "arborio_rice",
+    },
+}
+
+
+THEMEALDB_AVAILABILITY_NAME_ALIASES = {
+    "sugar": "granulated sugar",
+
+    "parmesan cheese": "parmesan",
+
+    "bay leaves": "bay leaf",
+
+    "spring onions": "spring onion",
+
+    "cumin seeds": "cumin",
+    "cumin seed": "cumin",
+    "potatoes": "potato",
+
+    "onions": "onion",
+    "red onions": "red onion",
+
+    "garlic clove": "garlic",
+    "garlic cloves": "garlic",
+
+    "mushrooms": "mushroom",
+
+    "tomatoes": "tomato",
+    "lemons": "lemon",
+    "limes": "lime",
+
+    "eggs": "egg",
+    "carrots": "carrot",
+}
+
+
+THEMEALDB_ALWAYS_AVAILABLE = {
+    "water",
+}
+
+
+def get_english_ingredient_id_map():
+    ingredients = db.session.scalars(
+        select(Ingredient)
+        .options(
+            selectinload(
+                Ingredient.translations
+            )
+        )
+        .where(
+            Ingredient.is_active.is_(
+                True
+            )
+        )
+    ).all()
+
+    english_name_map = {}
+    duplicate_names = set()
+
+    for ingredient in ingredients:
+        english_names = {
+            translation.name
+            .strip()
+            .casefold()
+
+            for translation
+            in ingredient.translations
+
+            if (
+                translation.language_code
+                == "en"
+                and translation.name
+                and translation.name.strip()
+            )
+        }
+
+        for english_name in english_names:
+            if english_name in english_name_map:
+                duplicate_names.add(
+                    english_name
+                )
+                continue
+
+            english_name_map[
+                english_name
+            ] = ingredient.id
+
+    for duplicate_name in duplicate_names:
+        english_name_map.pop(
+            duplicate_name,
+            None,
+        )
+
+    return english_name_map
+
+
+def get_ingredient_canonical_id_map():
+    rows = db.session.execute(
+        select(
+            Ingredient.canonical_key,
+            Ingredient.id,
+        )
+        .where(
+            Ingredient.is_active.is_(
+                True
+            )
+        )
+    ).all()
+
+    return {
+        canonical_key: ingredient_id
+        for canonical_key, ingredient_id
+        in rows
+    }
+
+
+def get_available_ingredient_ids(
+    household_id,
+):
+    return set(
+        db.session.scalars(
+            select(
+                InventoryBatch.ingredient_id
+            )
+            .where(
+                InventoryBatch.household_id
+                == household_id,
+                InventoryBatch.is_active.is_(
+                    True
+                ),
+                InventoryBatch.quantity > 0,
+            )
+            .distinct()
+        ).all()
+    )
+
+
+def get_online_recipe_availability(
+    recipe,
+    available_ingredient_ids,
+    english_ingredient_id_map,
+    canonical_ingredient_id_map,
+):
+    recipe_ingredients = (
+        recipe.get("ingredients")
+        or []
+    )
+
+    total_count = len(
+        recipe_ingredients
+    )
+
+    if total_count == 0:
+        return {
+            "available_count": 0,
+            "total_count": 0,
+            "missing_count": 0,
+            "match_percent": 0,
+        }
+
+    available_count = 0
+
+    for item in recipe_ingredients:
+        ingredient_name = (
+            str(
+                item.get("name")
+                or ""
+            )
+            .strip()
+            .casefold()
+        )
+
+        if not ingredient_name:
+            continue
+
+        normalized_ingredient_name = (
+            THEMEALDB_AVAILABILITY_NAME_ALIASES
+            .get(
+                ingredient_name,
+                ingredient_name,
+            )
+        )
+
+        if (
+            normalized_ingredient_name
+            in THEMEALDB_ALWAYS_AVAILABLE
+        ):
+            available_count += 1
+            continue
+
+        ingredient_id = (
+            english_ingredient_id_map.get(
+                normalized_ingredient_name
+            )
+        )
+
+        if (
+            ingredient_id
+            is not None
+            and ingredient_id
+            in available_ingredient_ids
+        ):
+            available_count += 1
+            continue
+
+        group_keys = (
+            ONLINE_RECIPE_AVAILABILITY_GROUPS
+            .get(
+                normalized_ingredient_name
+            )
+        )
+
+        if not group_keys:
+            continue
+
+        group_ingredient_ids = {
+            canonical_ingredient_id_map[
+                canonical_key
+            ]
+            for canonical_key
+            in group_keys
+            if canonical_key
+            in canonical_ingredient_id_map
+        }
+
+        if (
+            group_ingredient_ids
+            & available_ingredient_ids
+        ):
+            available_count += 1
+
+    missing_count = (
+        total_count
+        - available_count
+    )
+
+    match_percent = int(
+        round(
+            (
+                available_count
+                / total_count
+            )
+            * 100
+        )
+    )
+
+    return {
+        "available_count": (
+            available_count
+        ),
+        "total_count": total_count,
+        "missing_count": missing_count,
+        "match_percent": match_percent,
+    }
+
+
+def get_exact_english_search_term(
+    query,
+):
+    normalized_query = (
+        str(query or "")
+        .strip()
+        .casefold()
+    )
+
+    if not normalized_query:
+        return None
+
+    alias = (
+        ONLINE_RECIPE_SEARCH_ALIASES.get(
+            normalized_query
+        )
+    )
+
+    if alias:
+        return alias
+
+    ingredients = db.session.scalars(
+        select(Ingredient)
+        .where(
+            Ingredient.is_active.is_(
+                True
+            )
+        )
+    ).all()
+
+    matches = []
+
+    for ingredient in ingredients:
+        hungarian_names = {
+            translation.name
+            .strip()
+            .casefold()
+
+            for translation
+            in ingredient.translations
+
+            if (
+                translation.language_code
+                == "hu"
+                and translation.name
+                and translation.name.strip()
+            )
+        }
+
+        if (
+            normalized_query
+            not in hungarian_names
+        ):
+            continue
+
+        english_names = {
+            translation.name.strip()
+
+            for translation
+            in ingredient.translations
+
+            if (
+                translation.language_code
+                == "en"
+                and translation.name
+                and translation.name.strip()
+            )
+        }
+
+        if len(english_names) != 1:
+            continue
+
+        matches.append(
+            next(
+                iter(
+                    english_names
+                )
+            )
+        )
+
+    if len(matches) != 1:
+        return None
+
+    return matches[0]
+
+
+def get_safe_english_ingredient_terms(
+    query,
+):
+    query = (
+        str(query or "")
+        .strip()
+    )
+
+    if not query:
+        return []
+
+    exact_match = (
+        get_exact_english_search_term(
+            query
+        )
+    )
+
+    if exact_match:
+        return [
+            exact_match
+        ]
+
+    words = query.split()
+
+    if len(words) <= 1:
+        return []
+
+    translated_words = []
+
+    for word in words:
+        translated_word = (
+            get_exact_english_search_term(
+                word
+            )
+        )
+
+        if not translated_word:
+            return []
+
+        translated_words.append(
+            translated_word
+        )
+
+    return translated_words
+
+
+def get_safe_english_search_query(
+    query,
+):
+    terms = (
+        get_safe_english_ingredient_terms(
+            query
+        )
+    )
+
+    if not terms:
+        return (
+            str(query or "")
+            .strip()
+        )
+
+    return " ".join(
+        terms
+    )
 
 
 @bp.route(
@@ -1007,14 +1581,20 @@ def new():
     ):
         online_import = True
 
+        translated_recipe = (
+            translate_imported_recipe_to_hungarian(
+                imported_recipe
+            )
+        )
+
         form.title.data = (
-            imported_recipe[
+            translated_recipe[
                 "title"
             ]
         )
 
         form.instructions_text.data = (
-            imported_recipe[
+            translated_recipe[
                 "instructions"
             ]
         )
@@ -1084,35 +1664,11 @@ def new():
             in imported_tag_keys
         }
 
-        for item in (
-            imported_recipe[
-                "ingredients"
-            ]
-        ):
-            matched_ingredient = (
-                find_exact_english_ingredient(
-                    item["name"]
-                )
+        recipe_ingredient_rows = (
+            normalize_themealdb_import_ingredients(
+                imported_recipe
             )
-
-            recipe_ingredient_rows.append(
-                {
-                    "ingredient_id": (
-                        matched_ingredient.id
-                        if matched_ingredient
-                        else 0
-                    ),
-                    "name": (
-                        item["name"]
-                    ),
-                    "quantity": "",
-                    "unit_id": 0,
-                    "unit_text": (
-                        item["measure"]
-                        or ""
-                    ),
-                }
-            )
+        )
 
     if form.validate_on_submit():
         prep_time = (
@@ -1837,6 +2393,144 @@ def ingredient_search_api():
         results=results
     )
 
+
+def format_recipe_quantity(
+    value,
+):
+    if value is None:
+        return ""
+
+    try:
+        number = float(value)
+    except (
+        TypeError,
+        ValueError,
+    ):
+        return str(value)
+
+    whole = int(number)
+    fraction = number - whole
+
+    fractions = [
+        (1 / 8, "1/8"),
+        (1 / 4, "1/4"),
+        (1 / 3, "1/3"),
+        (3 / 8, "3/8"),
+        (1 / 2, "1/2"),
+        (5 / 8, "5/8"),
+        (2 / 3, "2/3"),
+        (3 / 4, "3/4"),
+        (7 / 8, "7/8"),
+    ]
+
+    best_fraction = None
+    best_difference = None
+
+    for fraction_value, label in fractions:
+        difference = abs(
+            fraction - fraction_value
+        )
+
+        if (
+            best_difference is None
+            or difference < best_difference
+        ):
+            best_difference = difference
+            best_fraction = label
+
+    if (
+        best_difference is not None
+        and best_difference <= 0.01
+    ):
+        if whole:
+            return (
+                f"{whole} "
+                f"{best_fraction}"
+            )
+
+        return best_fraction
+
+    if abs(
+        number - round(number)
+    ) <= 0.000001:
+        return str(
+            int(
+                round(number)
+            )
+        )
+
+    text = f"{number:.3f}"
+
+    return (
+        text
+        .rstrip("0")
+        .rstrip(".")
+    )
+
+
+def get_recipe_unit_display(
+    unit,
+):
+    if unit is None:
+        return ""
+
+    compact_unit_codes = {
+        "mg",
+        "g",
+        "kg",
+        "ml",
+        "cl",
+        "dl",
+        "l",
+    }
+
+    if unit.code in compact_unit_codes:
+        return (
+            unit.symbol
+            or unit.code
+        )
+
+    preferred_language = (
+        current_user.preferred_language
+        or "hu"
+    )
+
+    unit_name = next(
+        (
+            translation.name
+            for translation
+            in unit.translations
+            if (
+                translation.language_code
+                == preferred_language
+                and translation.name
+            )
+        ),
+        None,
+    )
+
+    if unit_name is None:
+        unit_name = next(
+            (
+                translation.name
+                for translation
+                in unit.translations
+                if (
+                    translation.language_code
+                    == "hu"
+                    and translation.name
+                )
+            ),
+            None,
+        )
+
+    return (
+        unit_name
+        or unit.symbol
+        or unit.code
+    )
+
+
 @bp.get(
     "/<uuid:public_id>"
 )
@@ -1915,6 +2609,16 @@ def detail(
                 "item": recipe_ingredient,
                 "is_available": (
                     is_available
+                ),
+                "quantity_display": (
+                    format_recipe_quantity(
+                        recipe_ingredient.quantity
+                    )
+                ),
+                "unit_display": (
+                    get_recipe_unit_display(
+                        recipe_ingredient.unit
+                    )
                 ),
             }
         )
