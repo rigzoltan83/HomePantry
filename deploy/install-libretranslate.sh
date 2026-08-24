@@ -25,10 +25,10 @@ SWAP_TOTAL_KB="$(
     awk '/SwapTotal/ {print $2}' /proc/meminfo
 )"
 
-if (
-    ( TOTAL_MEM_KB < 4194304 )
-    && ( SWAP_TOTAL_KB < 1048576 )
-); then
+if ((
+    TOTAL_MEM_KB < 4194304
+    && SWAP_TOTAL_KB < 1048576
+)); then
     echo
     echo "WARNING:"
     echo "Less than 4 GB RAM and less than 1 GB swap detected."
