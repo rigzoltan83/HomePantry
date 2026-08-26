@@ -7,6 +7,10 @@ class Config:
         "development-only-secret-key",
     )
 
+    SESSION_COOKIE_NAME = (
+        "homepantry_session"
+    )
+
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL"
     )
