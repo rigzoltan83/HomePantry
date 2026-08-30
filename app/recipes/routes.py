@@ -657,10 +657,19 @@ def index():
             for ingredient
             in recipe.ingredients
             if (
-                ingredient.ingredient_id
-                is not None
-                and ingredient.ingredient_id
-                in available_ingredient_ids
+                (
+                    ingredient.original_name
+                    or ""
+                )
+                .strip()
+                .casefold()
+                in THEMEALDB_ALWAYS_AVAILABLE
+                or (
+                    ingredient.ingredient_id
+                    is not None
+                    and ingredient.ingredient_id
+                    in available_ingredient_ids
+                )
             )
         )
 
@@ -2598,13 +2607,21 @@ def detail(
     for recipe_ingredient in (
         recipe.ingredients
     ):
-        is_available = (
-            recipe_ingredient.ingredient_id
-            is not None
-            and recipe_ingredient.ingredient_id
-            in available_ingredient_ids
-        )
+        ingredient_name = (
+            recipe_ingredient.original_name
+            or ""
+        ).strip().casefold()
 
+        is_available = (
+            ingredient_name
+            in THEMEALDB_ALWAYS_AVAILABLE
+            or (
+                recipe_ingredient.ingredient_id
+                is not None
+                and recipe_ingredient.ingredient_id
+                in available_ingredient_ids
+            )
+        )
         ingredient_rows.append(
             {
                 "item": recipe_ingredient,
