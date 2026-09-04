@@ -1,166 +1,166 @@
-# HomePantry deployment
+# HomePantry
 
-## Application service
+HomePantry is a self-hosted household pantry, inventory, and recipe
+management application with a bilingual Hungarian and English interface.
 
-HomePantry runs with Gunicorn under systemd.
+It is designed for practical everyday use on desktop and mobile devices,
+with support for products, ingredients, storage locations, stock tracking,
+barcodes, recipes, and household members.
 
-The application directory is:
+> **Status:** `0.1.0-alpha.1`
+>
+> This is the first public alpha release.
 
-```text
-/opt/homepantry
-```
+## Features
 
-The application listens on:
+- Household-based multi-user setup
+- Hungarian and English user interface
+- Ingredient master data
+- Ingredient categories, aliases, units, and substitutions
+- Product catalog with multiple barcodes
+- Browser-based barcode scanning
+- Open Food Facts product metadata lookup
+- Product and storage-location images
+- Hierarchical storage locations
+- Inventory batches and movement history
+- Low-stock rules
+- Recipe management
+- Recipe tags and images
+- Recipe availability based on current inventory
+- Online recipe search and import through TheMealDB
+- Measurement normalization for imported recipes
+- Optional local recipe translation with LibreTranslate
+- PostgreSQL database
+- Alembic migrations
+- Gunicorn and systemd deployment
+- Reverse-proxy and application-prefix support
+- Health-check endpoint
+- Automated Ubuntu installation
 
-```text
-0.0.0.0:8084
-```
+## Screenshots
 
-This allows direct LAN access while also allowing a local Tailscale Serve proxy to reach the application.
+Screenshots will be added for the first public release.
 
-## Install the systemd service
+## Requirements
 
-Copy the provided service file:
+Recommended platform:
+
+- Ubuntu 24.04 LTS
+- PostgreSQL
+- Python 3.12
+- systemd
+- A modern web browser
+
+Docker is only required for the optional LibreTranslate deployment.
+
+## Installation
+
+See:
+
+- [Installation guide](docs/INSTALL.md)
+- [Magyar telepítési útmutató](docs/INSTALL.hu.md)
+
+For a standard Ubuntu installation:
 
 ```bash
-sudo cp \
-  /opt/homepantry/deploy/homepantry.service \
-  /etc/systemd/system/homepantry.service
+sudo ./install.sh
 ```
 
-Reload systemd:
+The installer prepares:
 
-```bash
-sudo systemctl daemon-reload
-```
+- PostgreSQL
+- application user
+- Python virtual environment
+- dependencies
+- environment configuration
+- database migrations
+- reference data
+- systemd service
+- health check
 
-Enable HomePantry at boot:
+## First use
 
-```bash
-sudo systemctl enable homepantry
-```
-
-Start the service:
-
-```bash
-sudo systemctl start homepantry
-```
-
-Check status:
-
-```bash
-sudo systemctl status homepantry --no-pager -l
-```
-
-View logs:
-
-```bash
-sudo journalctl \
-  -u homepantry \
-  -n 100 \
-  --no-pager
-```
-
-Restart after application changes:
-
-```bash
-sudo systemctl restart homepantry
-```
-
-## LAN access
-
-The application can be accessed directly on the LAN using:
+After installation, open:
 
 ```text
 http://SERVER_IP:8084/
 ```
 
-## Tailscale Serve
+Create the first account through the registration page.
 
-HomePantry can also be published under a path on an existing Tailscale Serve HTTPS endpoint.
+The first registered user creates a household and becomes its owner.
 
-Example:
+## Reverse proxy and Tailscale
 
-```bash
-sudo tailscale serve \
-  --bg \
-  --set-path=/homepantry \
-  http://127.0.0.1:8084
-```
-
-Check the active Tailscale Serve configuration:
-
-```bash
-sudo tailscale serve status
-```
-
-Example result:
-
-```text
-https://HOSTNAME.TAILNET.ts.net
-|-- /homepantry proxy http://127.0.0.1:8084
-```
-
-## Application prefix
-
-When HomePantry is exposed through Tailscale Serve under:
+HomePantry supports running behind a reverse proxy under an application
+prefix such as:
 
 ```text
 /homepantry
 ```
 
-set the following in:
-
-```text
-/opt/homepantry/.env
-```
+Set:
 
 ```env
 APPLICATION_PREFIX=/homepantry
 ```
 
-The HomePantry middleware keeps direct LAN access mounted at `/` while restoring `/homepantry` as `SCRIPT_NAME` for requests received through the local HTTPS reverse proxy.
+The application can still remain directly accessible on the LAN at `/`.
 
-This allows the same running application to generate correct URLs for:
+## Optional recipe translation
 
-```text
-LAN:
-http://SERVER_IP:8084/
+HomePantry can use a separately deployed LibreTranslate service for
+English-to-Hungarian translation of imported recipes.
 
-Tailscale:
-https://HOSTNAME.TAILNET.ts.net/homepantry/
-```
-
-including:
-
-- login redirects
-- logout
-- static files
-- form actions
-- Flask `url_for()` results
-
-## Health check
-
-LAN:
+Install it with:
 
 ```bash
-curl http://127.0.0.1:8084/health
+sudo ./deploy/install-libretranslate.sh
 ```
 
-Expected:
+If LibreTranslate is unavailable, recipe import remains functional and
+the original English text is kept.
 
-```json
-{"application":"HomePantry","status":"ok"}
-```
+## External services
 
-When accessed through Tailscale Serve, the external URL becomes:
+HomePantry optionally integrates with:
 
-```text
-https://HOSTNAME.TAILNET.ts.net/homepantry/health
-```
+- Open Food Facts
+- TheMealDB
+- LibreTranslate
 
-## Data and media considerations
+Barcode scanning uses the bundled Quagga2 library.
 
-Recipe imports must normalize source measurement units into HomePantry's canonical internal units. The import layer must distinguish metric, US customary, and UK imperial units where their definitions differ.
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for licensing and
+attribution details.
 
-Image upload support should be optional and designed as a reusable application capability. It should be available for ingredients, prepared foods, and other relevant entities where an image can improve identification or usability.
+## Data and backups
+
+HomePantry stores application data in PostgreSQL and uploaded images in
+the application upload directories.
+
+Back up both the database and uploaded media regularly.
+
+Before upgrading between alpha releases, always create a current backup.
+
+## Development status
+
+HomePantry is already used as a real household application, but its public
+distribution is still in alpha.
+
+Expect installation, configuration, migrations, and documentation to evolve
+during the alpha releases.
+
+Bug reports and feedback are welcome.
+
+## License
+
+HomePantry is released under the MIT License.
+
+See [LICENSE](LICENSE).
+
+## Support
+
+If you find HomePantry useful and would like to support its development:
+
+https://www.patreon.com/c/ZoltanRigo

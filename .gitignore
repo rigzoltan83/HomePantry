@@ -46,3 +46,6 @@ Thumbs.db
 # Runtime / cache
 .cache/
 .gunicorn/
+
+# Local deployment utilities
+backup.sh
