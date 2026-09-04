@@ -1,17 +1,17 @@
 [Unit]
 Description=HomePantry Gunicorn service
-After=network.target docker.service
-Wants=network.target
-Requires=docker.service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
+
 User=homepantry
 Group=homepantry
 
 WorkingDirectory=/opt/homepantry
-
 Environment=HOME=/opt/homepantry
+EnvironmentFile=/etc/homepantry/homepantry.env
 
 ExecStart=/opt/homepantry/venv/bin/gunicorn \
     --workers 2 \
@@ -22,6 +22,8 @@ ExecStart=/opt/homepantry/venv/bin/gunicorn \
 
 Restart=on-failure
 RestartSec=3
+
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
