@@ -183,6 +183,8 @@ sudo systemctl stop homepantry.service
 
 git pull
 
+/opt/homepantry/venv/bin/pip install -r requirements.txt
+
 set -a
 source /etc/homepantry/homepantry.env
 set +a

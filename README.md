@@ -39,7 +39,29 @@ barcodes, recipes, and household members.
 
 ## Screenshots
 
-Screenshots will be added for the first public release.
+### Dashboard
+
+A quick overview of your household pantry, including stock status and items that need attention.
+
+![HomePantry dashboard](docs/screenshots/dashboard.png)
+
+### Inventory
+
+Track ingredients and products, quantities, storage locations and expiration dates.
+
+![HomePantry inventory](docs/screenshots/inventory.png)
+
+### Recipes
+
+Browse your recipe collection and see what you can prepare from the ingredients currently available at home.
+
+![HomePantry recipes](docs/screenshots/recipes.png)
+
+### Mobile
+
+HomePantry is designed to remain practical on phones as well as desktop browsers.
+
+![HomePantry mobile interface](docs/screenshots/mobile.png)
 
 ## Requirements
 

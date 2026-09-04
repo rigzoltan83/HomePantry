@@ -152,7 +152,7 @@ setup_postgresql()
         echo "Existing HomePantry environment found."
 
         if ! sudo -u postgres \
-            psql -tAc \
+            psql -p "${DB_PORT}" -tAc \
             "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" \
             | grep -q 1
         then
@@ -162,7 +162,7 @@ setup_postgresql()
         DB_PASSWORD="$(generate_db_password)"
 
         if sudo -u postgres \
-            psql -tAc \
+            psql -p "${DB_PORT}" -tAc \
             "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" \
             | grep -q 1
         then
@@ -170,7 +170,7 @@ setup_postgresql()
             echo "Setting a new password for the fresh HomePantry configuration."
 
             sudo -u postgres \
-                psql \
+                psql -p "${DB_PORT}" \
                 --set=ON_ERROR_STOP=1 \
                 --command="
                     ALTER ROLE ${DB_USER}
@@ -178,7 +178,7 @@ setup_postgresql()
                 "
         else
             sudo -u postgres \
-                psql \
+                psql -p "${DB_PORT}" \
                 --set=ON_ERROR_STOP=1 \
                 --command="
                     CREATE ROLE ${DB_USER}
@@ -189,14 +189,14 @@ setup_postgresql()
     fi
 
     if sudo -u postgres \
-        psql -tAc \
+        psql -p "${DB_PORT}" -tAc \
         "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" \
         | grep -q 1
     then
         echo "Database ${DB_NAME} already exists."
     else
         sudo -u postgres \
-            createdb \
+            createdb -p "${DB_PORT}" \
             --owner="${DB_USER}" \
             "${DB_NAME}"
     fi

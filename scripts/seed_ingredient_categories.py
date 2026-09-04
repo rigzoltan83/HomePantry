@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import sys
 
@@ -12,9 +13,10 @@ if str(PROJECT_ROOT) not in sys.path:
         str(PROJECT_ROOT),
     )
 
-load_dotenv(
-    PROJECT_ROOT / ".env"
-)
+if not os.getenv("DATABASE_URL"):
+    env_file = PROJECT_ROOT / ".env"
+    if env_file.is_file():
+        load_dotenv(env_file)
 
 
 from app import create_app
